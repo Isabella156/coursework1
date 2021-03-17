@@ -1,0 +1,724 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+/*********************************global variables***********************************************/
+    const char firstPrompt[] = "Please choose an option:\n1) Register an account\n2) Login\n\
+3) Search for books\n4) Display all books\n5) Quit\n Option:";
+
+    const char librarianPrompt[] = "Please choose an option:\n1) Add a book\n2) Remove a book\n\
+3) Search for a book\n4) Display all books\n5)Log out\n Option:";
+
+    const char searchMenu[] = "Please choose an option:\n1) Find books by title\n2) Find books \
+by author\n3) Find books by year\n4) Return to previous menu\n Option:";
+
+    const char invalidOption[] = "Sorry, the option you entered was invalid, please try again.\n\n";
+
+    const char invalidAddBook[] = "Sorry, you attempted to add an invalid book, please try again.\n\n";
+    const char invalidRemoveBook[] = "Sorry, you attempted to remove an\
+invalid book, please try again.\n\n";
+
+    const char userPrompt[] = "Please enter an option:\n1) Borrow a book\n2) Return a book\n\
+3) Search for book\n4) Display all books\n5) Log out\n Option: ";
+
+    const char noSuchBook[] = "Sorry, no such book.\n";
+
+    char answer[10];
+    char answer2[10];
+    char *answerPtr = answer;
+    char *answerPtr2 = answer2;
+/**********************************global variables*********************************/
+
+typedef struct _Book {
+    unsigned int id; //Book ID
+    char *title; //book title
+    char *authors; //comma separated list of authors
+    unsigned int year; // year of publication
+    unsigned int copies; //number of copies the library has
+    unsigned int initialCopies; // total number of the copies
+    struct _Book *next;
+}Book;
+
+typedef struct _BookArray {
+	Book* array; // pointer to array (or linked list) of struct Book.
+	unsigned int length; // number of elements in the (Book*) array 
+}BookArray;
+
+typedef struct _BorrowBook{
+    unsigned int id;
+    char *title;
+    char *authors;
+    unsigned int year;
+    struct _BorrowBook* next;
+}BorrowBook;
+
+// declare a struct to store user
+typedef struct _User {
+    char *username;
+    char *password;
+    Book *borrow;
+    // books that the user borrow
+    BorrowBook *borrowBook;
+    struct _User*next;
+}User;
+
+// a head node that does not hold meaningful data for Books
+Book headNodeBook;
+// a head pointer that points to the head node of the book
+Book *headPtrBook;
+
+// a head node that does not hold meaning data for user
+User headNodeUser;
+// a head pointer that points to the head node of the user
+User *headPtrUser;
+
+// a head node that does not hold meaning data for the borrowed book
+BorrowBook headNodeBorrowBook;
+// a head pointer that points to the head node of the user
+BorrowBook *headPtrBorrowBoook;
+
+// declare a libaray administrator
+User librarian;
+
+// function to make string a zero string
+void nullifyString(char *string){
+    for(; *string != '\0'; *string++){
+        *string = '\0';
+    }
+    *string = '\0';
+}
+// function to find book by id
+Book* findBookByID (unsigned int id){
+    // declare a book pointer to traverse the linked list for books
+    Book *bookPtr = headPtrBook->next;
+    while(bookPtr != NULL){
+        if(bookPtr->id == id){
+            break;
+        }
+        bookPtr = bookPtr->next;
+    }
+    return bookPtr;
+}
+
+// function to borrow books for user
+void borrowBook(Book *book, User user){
+    BorrowBook* headPtrBorrowBoook = user.borrowBook;
+    // find the end of the borrowed book
+    while(headPtrBorrowBoook->next != NULL){
+        headPtrBorrowBoook = headPtrBorrowBoook->next;
+    }
+    // new borrowBook
+    BorrowBook* newBorrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
+    newBorrowBook->id = book->id;
+    newBorrowBook->authors = book->authors;
+    newBorrowBook->title = book->title;
+    newBorrowBook->year = book->year;
+    newBorrowBook->next = NULL;
+
+    // assign the new borrowBook
+    headPtrBorrowBoook->next = newBorrowBook;
+    
+}
+
+// function to check if the user borrow two same book
+int checkSameBorrowBook(unsigned int id, User user){
+    int i = 0;
+    BorrowBook* borrowBookPtr = user.borrowBook->next;
+    while(borrowBookPtr != NULL){
+        if(borrowBookPtr->id == id){
+            i = 1;
+            break;
+        }
+        borrowBookPtr = borrowBookPtr->next;
+    }
+    return i;
+}
+
+//saves the database of books in the specified file
+//returns 0 if books were stored correctly, or an error code otherwise
+int store_books(FILE *file){
+    file = fopen("books.txt","w");
+    Book* bookPtr;
+
+    // file = fopen("books.bin","wb");
+    // if(file == NULL){
+    //     exit(0);
+    // }
+
+    // int i;
+    // fwrite(arrayTwo, sizeof(Book),arrayOne.length, file);
+    // fclose(file);
+    // i = fwrite(arrayTwo, sizeof(Book),arrayOne.length, file);
+    
+    // if(i == arrayOne.length){
+    //     return 0;
+    // }else{
+    //     return -1;
+    // }
+}
+
+
+//loads the database of books from the specified file
+//the file must have been generated by a previous call to store_books()
+//returns 0 if books were loaded correctly, or an error code otherwise
+int load_books(const char* filename){
+    headPtrBook = (Book*)malloc(sizeof(Book*));
+    Book* bookPtr;
+    Book* newBook;
+    bookPtr = headPtrBook;
+    FILE *file;
+    file = fopen(filename, "r");
+    if (!file) {
+        printf("Cannot open books");
+    return -1;
+	}
+    char str[50];
+    while(!feof(file)){
+        newBook = (Book*)malloc(sizeof(Book));
+        
+        fscanf(file,"%u",&newBook->id);
+        fgetc(file);
+
+        fscanf(file,"%[^\n]s",str);
+        newBook->title = (char*)malloc(sizeof(str));
+        strcpy(newBook->title,str);
+        memset(str,'\0',strlen(str));
+        fgetc(file);
+
+        fscanf(file,"%[^\n]s",str);
+        newBook->authors = (char*)malloc(sizeof(str));
+        strcpy(newBook->authors,str);
+        memset(str,'\0',strlen(str));
+        fgetc(file);
+
+        fscanf(file,"%u",&newBook->year);
+        fgetc(file);
+
+        fscanf(file,"%u",&newBook->copies);
+        fgetc(file);
+        bookPtr->next = newBook;
+        bookPtr = newBook;
+    }
+    bookPtr->next = NULL;
+
+    return 0;
+}
+/* int load_books(FILE *file){
+    file = fopen("books.bin","rb");
+    if(file == NULL){
+        exit(0);
+    }
+    int i;
+    fread(arrayTwo, sizeof(Book), arrayOne.length, file);
+    fclose(file);
+    i = fread(arrayTwo, sizeof(Book), arrayOne.length, file);
+
+    if(i == arrayOne.length){
+    return 0;
+    }else{
+        return -1;
+    }
+}
+*/
+
+// function to check if the book can be added
+Book* checkAddBooks(char *title, char *authors, unsigned int copies, unsigned int year){
+    // declare a book pointer to traverse the linked list for the book
+    Book* bookPtr = headNodeBook.next;
+    while(bookPtr != NULL){
+        if(!strcmp (bookPtr->title,title) && !strcmp(bookPtr->authors,authors) && \
+        bookPtr->copies == copies && bookPtr->year == year &&\
+        // the current number of books must be smaller than the initial number
+        bookPtr->copies < bookPtr->initialCopies){
+            break;
+        }
+        bookPtr = bookPtr->next;
+    }
+
+    return bookPtr;
+}
+//adds a book to the ones available to the library
+//returns 0 if the book could be added, or an error code otherwise
+int add_book(Book book){
+    // declare a book pointer to see the address of the book
+    Book* bookPtr = &book;
+    // book can not be added
+    if(bookPtr == NULL){
+        return 0;
+    // book can be added
+    }else{
+        bookPtr->copies++;
+        return 1;
+    }
+}
+// function to check if the book can be removed
+Book* checkRemoveBook(char *title, char *authors, unsigned int copies, unsigned int year){
+    // declare a book pointer to traverse the linked list for books
+    Book* bookPtr = headNodeBook.next;
+    while(bookPtr != NULL){
+        if(!strcmp (bookPtr->title,title) && !strcmp(bookPtr->authors,authors) && \
+        bookPtr->copies == copies && bookPtr->year == year &&\
+        // the book can be removed if there is one book in the library
+        bookPtr->copies >= 1){
+            break;
+        }
+        bookPtr = bookPtr->next;
+    }
+    return bookPtr;
+}
+//removes a book from the library
+//returns 0 if the book could be successfully removed, or an error code otherwise.
+int remove_book(Book book){
+    // declare a book pointer get the address of the book
+    Book *bookPtr = &book;
+    // book can not be removed
+    if(bookPtr == NULL){
+        return 0;
+    // book can be removed
+    }else{
+        bookPtr->copies--;
+        return 1;
+    }
+}
+
+//finds books with a given title.
+//returns a BookArray structure, where the field "array" is a newly allocated array of books, or null if no book with the 
+//provided title can be found. The length of the array is also recorded in the returned structure, with 0 in case
+//array is the null pointer.
+BookArray find_book_by_title (const char *title){
+    // declare a book pointer to be the head node of the array of the book array
+    Book *headNode = (Book*)malloc(sizeof(Book*));
+    headNode->next = NULL;
+    // declare a book pointer to traverse the linked list for the book
+    Book* bookPtr = &headNodeBook;
+    // declare a BookArray
+    BookArray titleArray;
+    // initialize the book array
+    titleArray.array = headNode;
+    titleArray.length = 0;
+    while(bookPtr != NULL){
+        if(!strcmp(bookPtr->title,title)){
+            // assign the book pointer to the array
+            titleArray.array->next = bookPtr;
+            titleArray.length ++;
+            titleArray.array = titleArray.array->next;
+        }
+        bookPtr = bookPtr->next;
+    }
+    titleArray.array->next = NULL;
+    return titleArray;
+}
+
+//finds books with the given authors.
+//returns a BookArray structure, where the field "array" is a newly allocated array of books, or null if no book with the 
+//provided title can be found. The length of the array is also recorded in the returned structure, with 0 in case
+//array is the null pointer.
+BookArray find_book_by_author (const char *author){
+    // declare a book pointer to be the head node of the array of the book array
+    Book *headNode = (Book*)malloc(sizeof(Book*));
+    headNode->next = NULL;
+    // declare a book pointer to traverse the linked list for the book
+    Book* bookPtr = &headNodeBook;
+    // declare a BookArray
+    BookArray authorArray;
+    authorArray.array = headNode;
+    authorArray.length = 0;
+
+    while(bookPtr != NULL){
+        if(strstr(bookPtr->authors,author) != NULL){
+            authorArray.array->next = bookPtr;
+            authorArray.length ++;
+            authorArray.array = authorArray.array->next;
+        }
+        bookPtr = bookPtr->next;
+    }
+    authorArray.array->next = NULL;
+    return authorArray;
+}
+
+//finds books published in the given year.
+//returns a BookArray structure, where the field "array" is a newly allocated array of books, or null if no book with the 
+//provided title can be found. The length of the array is also recorded in the returned structure, with 0 in case
+//array is the null pointer.
+BookArray find_book_by_year (unsigned int year){
+    // declare a book pointer to be the head node of the array of the book array
+    Book *headNode = (Book*)malloc(sizeof(Book*));
+    headNode->next = NULL;
+    // declare a book pointer to traverse the linked list for books
+    Book *bookPtr = headNodeBook.next;
+    // declare a BookArray
+    BookArray yearArray;
+    yearArray.array = headNode;
+    yearArray.length = 0;
+    while(bookPtr != NULL){
+        if(bookPtr->year == year){
+            yearArray.array->next = bookPtr;
+            yearArray.length ++;
+            yearArray.array = yearArray.array->next;
+        }
+        bookPtr = bookPtr->next;
+    }
+    yearArray.array->next = NULL;
+    
+    return yearArray;
+}
+
+// function to display the book array
+void displayBookArray(BookArray bookArray){
+    // declare a book pointer to traverse the linked list for books
+    Book *bookPtr = bookArray.array->next;
+    printf("ID    Title                                                 Authors\
+                                               year  copies\n");
+    while(bookPtr != NULL){
+        printf("%-2d    %-50s    %-50s    ",bookPtr->id, bookPtr->title, bookPtr->authors);
+        printf("%-4d  %-2d", bookPtr->year, bookPtr->copies);
+        bookPtr = bookPtr->next;
+    }
+}
+
+// function to display all books
+void displayBooks(){
+    // declare a book pointer to traverse the linked list for books
+    Book *bookPtr = headNodeBook.next;
+    printf("ID    Title                                                 Authors\
+                                               year  copies\n");
+    
+    while(bookPtr != NULL){
+        printf("%-2d    %-50s    %-50s    ",bookPtr->id, bookPtr->title, bookPtr->authors);
+        printf("%-4d  %-2d", bookPtr->year, bookPtr->copies);
+        bookPtr = bookPtr->next;
+    }
+}
+
+// function to display all borrow books
+void displayBorrowBooks(User user){
+    Book *bookPtr = headNodeBook.next;
+    printf("ID    Title                                                 Authors\
+                                               year\n");
+    while(user.borrowBook != NULL){
+        printf("%-2d    %-50s    %-50s    ",bookPtr->id, bookPtr->title, bookPtr->authors);
+        printf("%-4d  %-2d", bookPtr->year, bookPtr->copies);
+        user.borrowBook = user.borrowBook->next;
+    }
+}
+
+// function to check the returned book
+BorrowBook* checkReturnBook(unsigned int id, User user){
+    while(user.borrowBook != NULL){
+        if(user.borrowBook->next->id == id){
+            break;
+        }
+        user.borrowBook = user.borrowBook->next;
+    }
+    return user.borrowBook;
+}
+// function to return the book
+void returnBook(BorrowBook* returnBook){
+    returnBook->next = returnBook->next->next;
+}
+// function to check if the user name already exists
+int checkUsername(char *name){
+    // declare a user pointer to traverse the linked list for the user
+    User *usrPtr = headPtrUser->next;
+    int i = 0;
+    while(usrPtr != NULL){
+        if(!strcmp(usrPtr->username,name)){
+            i = 1;
+            break;
+        }
+        usrPtr = usrPtr->next;
+    }
+
+    return i;
+}
+
+// function to store username
+void storeUsername(char username[], char password[]){
+    // declare a user pointer to traverse the linked list for the username
+    User* usrPtr = headPtrUser;
+    while(usrPtr->next != NULL){
+        usrPtr = usrPtr->next;
+    }
+    // declare a user pointer to store the new user and allocate the memory
+    User *newUser = (User *)malloc(sizeof(User*));
+    char str[30];
+
+    strcpy(str,username);
+    newUser->username = (char*)malloc(sizeof(str));
+    strcpy(newUser->username,str);
+    memset(str,'\0',30);
+
+    strcpy(str,password);
+    newUser->password = (char*)malloc(sizeof(str));
+    strcpy(newUser->password,str);
+    memset(str,'\0',30);
+
+    newUser->borrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
+    newUser->borrowBook->next = NULL;
+    // newUser->borrow = NULL;
+    newUser->next = NULL;
+    usrPtr->next = newUser;
+}
+
+// function to check password
+User* checkPassword(char *username, char *password){
+    // declare a user pointer to traverse the linked list for user
+    User *userPtr = headPtrUser->next;
+    while(userPtr != NULL){
+        if(!strcmp(userPtr->username,username)){
+            if(!strcmp(userPtr->password,password)){
+                break;
+            }
+        }
+        userPtr = userPtr->next;
+    }
+
+    return userPtr;
+}
+
+// function to 
+// function to search for a book
+void searchForBook(){
+    while (1){
+        printf("Loading search menu...\n\n");
+        printf("%s",searchMenu);
+        gets(answer);
+        // wrong option
+        if(*answer <'1' || *answer > '4'){
+            printf("%s", invalidOption);
+            // find books by title
+        }else if(*answer == '1'){
+            nullifyString(answerPtr);
+            printf("Please enter the title: ");
+            gets(answer);
+            // find the book
+            if(find_book_by_title(answer).array->next != NULL){
+                displayBookArray(find_book_by_title(answer));
+                // can not find the book
+            }else{
+                printf("%s", noSuchBook);
+            }
+            // find books by author
+        }else if(*answer == '2'){
+            nullifyString(answerPtr);
+            printf("Please enter the author: ");
+            gets(answer);
+            // find the book
+            if(find_book_by_author(answer).array->next != NULL){
+                displayBookArray(find_book_by_author(answer));
+                // can not find the book
+            }else{
+                printf("%s", noSuchBook);
+            }
+            // find books by year
+        }else if(*answer == '3'){
+            printf("Please enter the year");
+            gets(answer);
+            if(find_book_by_year(atoi(answer)).array->next != NULL){
+                displayBookArray(find_book_by_year(atoi(answer)));
+            }else{
+                printf("%s", noSuchBook);
+            }
+            // return to previous menu
+        }else if(*answer == '4'){
+            break;
+        }
+    }
+}
+
+int main(void){
+    // declaration of users
+    headPtrUser = (User*)malloc(sizeof(User));
+    headPtrUser->next = NULL;
+
+    // declaration of borrow book
+    headPtrBorrowBoook = (BorrowBook*)malloc(sizeof(BorrowBook));
+    headPtrBorrowBoook->next = NULL;
+    // declaration of library administrator (librarian)
+    librarian.username = "librarian";
+    librarian.password = "librarian";
+
+    load_books("books.txt");
+
+    while(1){
+        printf("%s",firstPrompt);
+        gets(answer);
+
+        // wrong option
+        if(*answer < '1' || *answer > '5'){
+            nullifyString(answerPtr);
+            printf("%s",invalidOption);
+            
+            continue;
+            // register an account
+        }else if(*answer == '1'){
+            while(1){
+                printf("Please enter a username: ");
+                gets(answer);
+                if(checkUsername(answer)){
+                    printf("Sorry, registration unsuccessful, the username you entered already exists.\n");
+                    continue;
+                }else{
+                    break;
+                }
+            }
+            printf("Please enter a password: ");
+            gets(answer2);
+            storeUsername(answer, answer2);
+            nullifyString(answerPtr);
+            nullifyString(answerPtr2);
+            // login
+        }else if(*answer == '2'){
+            while(1){
+                printf("Please enter your username: ");
+                gets(answer);
+                if(checkUsername(answer)){
+                    printf("Please enter your password: ");
+                    gets(answer2);
+                    if(checkPassword(answer,answer2)){
+                        // library administrator account
+                        if(!strcmp(answer,"librarian")){
+                            nullifyString(answerPtr);
+                            nullifyString(answerPtr2);
+                            while(1){
+                                printf("(logged in as: librarian)\n");
+                                printf("%s",librarianPrompt);
+                                gets(answer);
+                                // wrong option
+                                if(*answer<'1' || *answer>'5'){
+                                    printf("%s",invalidOption);
+                                    nullifyString(answerPtr);
+                                    continue;
+                                    // add a book
+                                }else if(*answer == '1'){
+                                    char title[50], authors[50];
+                                    nullifyString(title);
+                                    nullifyString(authors);
+                                    unsigned int copies, year;
+                                    printf("Enter the title of the book you wish to add: ");
+                                    gets(title);
+                                    printf("Enter the author of the book you wish to add: ");
+                                    gets(authors);
+                                    printf("Enter the year of that the book you wish to add: ");
+                                    scanf("%d", &copies);
+                                    printf("Enter the number of book that you wish to add: ");
+                                    scanf("%d",&year);
+                                    // check if there is such a book in the library
+                                    // book can be added
+                                    if(checkAddBooks(title,authors,copies,year)!=NULL){
+                                        add_book(*checkAddBooks(title,authors,copies,year));
+                                        printf("Book was successfully added!\n");
+                                        // book can not be added
+                                    }else{
+                                        printf("%s", invalidAddBook);
+                                    }
+                                    // remove a book
+                                }else if(*answer == '2'){
+                                    char *title = NULL, *authors = NULL; 
+                                    unsigned int copies, year;
+                                    printf("Enter the title of the book you wish to remove: ");
+                                    gets(title);
+                                    printf("Enter the author of the book you wish to remove: ");
+                                    gets(authors);
+                                    printf("Enter the year of that the book you wish to remove: ");
+                                    scanf("%d", &copies);
+                                    printf("Enter the number of book that you wish to remove: ");
+                                    scanf("%d",&year);
+                                    // check if there is such a book can be removed
+                                    // book can be removed 
+                                    if(checkRemoveBook(title,authors,copies,year) != NULL){
+                                        remove_book(*checkRemoveBook(title,authors,copies,year));
+                                        printf("Book was successfully removed!\n");
+                                        // book can not be removed
+                                    }else{
+                                        printf("%s", invalidRemoveBook);
+                                    }
+                                    //search for a book
+                                }else if(*answer == '3'){
+                                    nullifyString(answerPtr);
+                                    searchForBook();
+                                    // display all books
+                                }else if(*answer == '4'){
+                                    displayBooks();
+                                    // log out
+                                }else if(*answer == '5'){
+                                    break;
+                                }
+                            }
+                            // user account
+                        }else{
+                            User currentUser = *checkPassword(answer,answer2);
+                            while(1){
+                                printf("(logged in as: %s)",answer);
+                                printf("%s", userPrompt);
+                                nullifyString(answerPtr);
+                                gets(answer);
+                                // wrong option
+                                if(*answer < '1' || *answer > '5'){
+                                    nullifyString(answerPtr);
+                                    printf("%s", invalidOption);
+                                    // borrow a book
+                                }else if(*answer == '1'){
+                                    nullifyString(answerPtr);
+                                    printf("Enter the ID number of the book you wish to borrow: ");
+                                    gets(answer);
+                                    // the book can be borrowed the book exists in the library 
+                                    // and not borrowed by the same user
+                                    if(findBookByID(atoi(answer)) != NULL &&\
+                                    findBookByID(atoi(answer))->copies >= 0 && !checkSameBorrowBook\
+                                    (atoi(answer),currentUser)){
+                                        borrowBook(findBookByID(atoi(answer)),currentUser);
+                                        printf("You have successfully borrowed the book!\n");
+                                        // the book is already borrowed
+                                    }else if(checkSameBorrowBook(atoi(answer),currentUser)){
+                                        printf\
+                                        ("Sorry, you already have a copy of this book on loan.\n");
+                                        // the book can not be borrowd
+                                    }else{
+                                        printf("Sorry, book is borrowed unsuccessfully.\n");
+                                    }
+                                    // return a book
+                                }else if(*answer == '2'){
+                                    nullifyString(answerPtr);
+                                    printf("Below is the list of Books you are currently borrowing:\n");
+                                    displayBorrowBooks(currentUser);
+                                    printf("Enter the ID number of the book you wish to return: ");
+                                    gets(answer);
+                                    // the book can be returned: the book was borrowed before
+                                    if(checkReturnBook(atoi(answer),currentUser) != NULL){
+                                        returnBook(checkReturnBook(atoi(answer),currentUser));
+                                        printf("Returned book successfully!.\n");
+                                    }else{
+                                        printf("Cannot return book!\n");
+                                    }
+                                    // search for a book
+                                }else if(*answer == '3'){
+                                    nullifyString(answerPtr);
+                                    searchForBook();
+                                }else if(*answer == '4'){
+                                    displayBooks();
+                                }else if (*answer == '5'){
+                                    printf("Logging out...\n");
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }else{
+                    printf("Sorry, the username does not exist.\n");
+                    continue;
+                }
+            }
+            // search for a book
+        }else if(*answer == '3'){
+            searchForBook();
+        }else if(*answer == '4'){
+            displayBooks();
+        }else if(*answer == '5'){
+            printf("Thank you for using the library!\n");
+        }
+    }
+    
+    return 0;
+}
