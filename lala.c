@@ -393,29 +393,35 @@ void displayBooks(){
 
 // function to display all borrow books
 void displayBorrowBooks(User user){
-    Book *bookPtr = headNodeBook.next;
     printf("ID    Title                                                 Authors\
                                                year\n");
-    while(user.borrowBook != NULL){
-        printf("%-2d    %-50s    %-50s    ",bookPtr->id, bookPtr->title, bookPtr->authors);
-        printf("%-4d  %-2d", bookPtr->year, bookPtr->copies);
-        user.borrowBook = user.borrowBook->next;
+    BorrowBook* borrowBookPtr = user.borrowBook->next;
+    while(borrowBookPtr != NULL){
+        printf("%-2u    %-50s    %-50s    ",borrowBookPtr->id, borrowBookPtr->title, borrowBookPtr->authors);
+        printf("%-4u\n", borrowBookPtr->year);
+        borrowBookPtr = borrowBookPtr->next;
     }
 }
 
 // function to check the returned book
 BorrowBook* checkReturnBook(unsigned int id, User user){
-    while(user.borrowBook != NULL){
-        if(user.borrowBook->next->id == id){
+    BorrowBook* borrowBookPtr = user.borrowBook->next;
+    while(borrowBookPtr != NULL){
+        if(borrowBookPtr->id == id){
             break;
         }
-        user.borrowBook = user.borrowBook->next;
+        borrowBookPtr = borrowBookPtr->next;
     }
-    return user.borrowBook;
+    return borrowBookPtr;
 }
 // function to return the book
-void returnBook(BorrowBook* returnBook){
-    returnBook->next = returnBook->next->next;
+void returnBook(BorrowBook* returnBook, User user){
+    BorrowBook* borrowBookPtr = user.borrowBook->next;
+    while(borrowBookPtr->next != returnBook){
+        borrowBookPtr = borrowBookPtr->next;
+    }
+    borrowBookPtr->next = returnBook->next;
+    returnBook->next = NULL;
 }
 // function to check if the user name already exists
 int checkUsername(char *name){
@@ -650,7 +656,7 @@ int main(void){
                         }else{
                             User currentUser = *checkPassword(answer,answer2);
                             while(1){
-                                printf("(logged in as: %s)",answer);
+                                printf("(logged in as: %s)\n",answer);
                                 printf("%s", userPrompt);
                                 nullifyString(answerPtr);
                                 gets(answer);
@@ -687,7 +693,8 @@ int main(void){
                                     gets(answer);
                                     // the book can be returned: the book was borrowed before
                                     if(checkReturnBook(atoi(answer),currentUser) != NULL){
-                                        returnBook(checkReturnBook(atoi(answer),currentUser));
+                                        returnBook(checkReturnBook(atoi(answer),currentUser),\
+                                        currentUser);
                                         printf("Returned book successfully!.\n");
                                     }else{
                                         printf("Cannot return book!\n");
