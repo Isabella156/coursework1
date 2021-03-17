@@ -287,26 +287,34 @@ int remove_book(Book book){
 //provided title can be found. The length of the array is also recorded in the returned structure, with 0 in case
 //array is the null pointer.
 BookArray find_book_by_title (const char *title){
-    // declare a book pointer to be the head node of the array of the book array
-    Book *headNode = (Book*)malloc(sizeof(Book*));
-    headNode->next = NULL;
-    // declare a book pointer to traverse the linked list for the book
-    Book* bookPtr = &headNodeBook;
     // declare a BookArray
     BookArray titleArray;
     // initialize the book array
-    titleArray.array = headNode;
+    titleArray.array = headPtrBook;
     titleArray.length = 0;
+
+    Book* arrayPtr = titleArray.array;
+
+    Book* bookPtr = headPtrBook->next;
     while(bookPtr != NULL){
         if(!strcmp(bookPtr->title,title)){
-            // assign the book pointer to the array
-            titleArray.array->next = bookPtr;
+            Book* newArray = (Book*)malloc(sizeof(Book));
+            newArray->id = bookPtr->id;
+            newArray->title = bookPtr->title;
+            newArray->authors = bookPtr->authors;
+            newArray->year = bookPtr->year;
+            newArray->copies = bookPtr->copies;
+            newArray->next = NULL;
+
+            // assign the newArray
             titleArray.length ++;
-            titleArray.array = titleArray.array->next;
+            arrayPtr->next = newArray;
+            arrayPtr = arrayPtr->next;
+            
         }
         bookPtr = bookPtr->next;
     }
-    titleArray.array->next = NULL;
+    arrayPtr->next = NULL;
     return titleArray;
 }
 
@@ -315,25 +323,34 @@ BookArray find_book_by_title (const char *title){
 //provided title can be found. The length of the array is also recorded in the returned structure, with 0 in case
 //array is the null pointer.
 BookArray find_book_by_author (const char *author){
-    // declare a book pointer to be the head node of the array of the book array
-    Book *headNode = (Book*)malloc(sizeof(Book*));
-    headNode->next = NULL;
-    // declare a book pointer to traverse the linked list for the book
-    Book* bookPtr = &headNodeBook;
     // declare a BookArray
     BookArray authorArray;
-    authorArray.array = headNode;
+    // initialize the book array
+    authorArray.array = headPtrBook;
     authorArray.length = 0;
 
+    Book* arrayPtr = authorArray.array;
+
+    Book* bookPtr = headPtrBook->next;
     while(bookPtr != NULL){
-        if(strstr(bookPtr->authors,author) != NULL){
-            authorArray.array->next = bookPtr;
+        if(!strcmp(bookPtr->authors,author)){
+            Book* newArray = (Book*)malloc(sizeof(Book));
+            newArray->id = bookPtr->id;
+            newArray->title = bookPtr->title;
+            newArray->authors = bookPtr->authors;
+            newArray->year = bookPtr->year;
+            newArray->copies = bookPtr->copies;
+            newArray->next = NULL;
+
+            // assign the newArray
             authorArray.length ++;
-            authorArray.array = authorArray.array->next;
+            arrayPtr->next = newArray;
+            arrayPtr = arrayPtr->next;
+            
         }
         bookPtr = bookPtr->next;
     }
-    authorArray.array->next = NULL;
+    arrayPtr->next = NULL;
     return authorArray;
 }
 
@@ -342,25 +359,34 @@ BookArray find_book_by_author (const char *author){
 //provided title can be found. The length of the array is also recorded in the returned structure, with 0 in case
 //array is the null pointer.
 BookArray find_book_by_year (unsigned int year){
-    // declare a book pointer to be the head node of the array of the book array
-    Book *headNode = (Book*)malloc(sizeof(Book*));
-    headNode->next = NULL;
-    // declare a book pointer to traverse the linked list for books
-    Book *bookPtr = headNodeBook.next;
-    // declare a BookArray
+        // declare a BookArray
     BookArray yearArray;
-    yearArray.array = headNode;
+    // initialize the book array
+    yearArray.array = headPtrBook;
     yearArray.length = 0;
+
+    Book* arrayPtr = yearArray.array;
+
+    Book* bookPtr = headPtrBook->next;
     while(bookPtr != NULL){
         if(bookPtr->year == year){
-            yearArray.array->next = bookPtr;
+            Book* newArray = (Book*)malloc(sizeof(Book));
+            newArray->id = bookPtr->id;
+            newArray->title = bookPtr->title;
+            newArray->authors = bookPtr->authors;
+            newArray->year = bookPtr->year;
+            newArray->copies = bookPtr->copies;
+            newArray->next = NULL;
+
+            // assign the newArray
             yearArray.length ++;
-            yearArray.array = yearArray.array->next;
+            arrayPtr->next = newArray;
+            arrayPtr = arrayPtr->next;
+            
         }
         bookPtr = bookPtr->next;
     }
-    yearArray.array->next = NULL;
-    
+    arrayPtr->next = NULL;
     return yearArray;
 }
 
@@ -369,10 +395,10 @@ void displayBookArray(BookArray bookArray){
     // declare a book pointer to traverse the linked list for books
     Book *bookPtr = bookArray.array->next;
     printf("ID    Title                                                 Authors\
-                                               year  copies\n");
+                                            year  copies\n");
     while(bookPtr != NULL){
-        printf("%-2d    %-50s    %-50s    ",bookPtr->id, bookPtr->title, bookPtr->authors);
-        printf("%-4d  %-2d", bookPtr->year, bookPtr->copies);
+        printf("%-2d    %-50s    %-50s ",bookPtr->id, bookPtr->title, bookPtr->authors);
+        printf("%-4d  %-2d\n", bookPtr->year, bookPtr->copies);
         bookPtr = bookPtr->next;
     }
 }
@@ -519,7 +545,7 @@ void searchForBook(){
             }
             // find books by year
         }else if(*answer == '3'){
-            printf("Please enter the year");
+            printf("Please enter the year: ");
             gets(answer);
             if(find_book_by_year(atoi(answer)).array->next != NULL){
                 displayBookArray(find_book_by_year(atoi(answer)));
