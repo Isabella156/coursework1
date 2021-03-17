@@ -36,7 +36,6 @@ typedef struct _Book {
     char *authors; //comma separated list of authors
     unsigned int year; // year of publication
     unsigned int copies; //number of copies the library has
-    unsigned int initialCopies; // total number of the copies
     struct _Book *next;
 }Book;
 
@@ -222,35 +221,31 @@ int load_books(const char* filename){
 }
 */
 
-// function to check if the book can be added
-Book* checkAddBooks(char *title, char *authors, unsigned int copies, unsigned int year){
-    // declare a book pointer to traverse the linked list for the book
-    Book* bookPtr = headNodeBook.next;
-    while(bookPtr != NULL){
-        if(!strcmp (bookPtr->title,title) && !strcmp(bookPtr->authors,authors) && \
-        bookPtr->copies == copies && bookPtr->year == year &&\
-        // the current number of books must be smaller than the initial number
-        bookPtr->copies < bookPtr->initialCopies){
-            break;
-        }
-        bookPtr = bookPtr->next;
-    }
-
-    return bookPtr;
-}
 //adds a book to the ones available to the library
 //returns 0 if the book could be added, or an error code otherwise
-int add_book(Book book){
-    // declare a book pointer to see the address of the book
-    Book* bookPtr = &book;
-    // book can not be added
-    if(bookPtr == NULL){
-        return 0;
-    // book can be added
+int add_book(char bookTitle[], char bookAuthors[], unsigned int bookCopies, unsigned int bookYear){
+    if(bookCopies <= 0){
+        return -1;
     }else{
-        bookPtr->copies++;
-        return 1;
+    Book* newBook = (Book*)malloc(sizeof(Book));
+    newBook->title = (char*)malloc(50*sizeof(char));
+    strcpy(newBook->title, bookTitle);
+    newBook->authors = (char*)malloc(50*sizeof(char));
+    strcpy(newBook->authors, bookAuthors);
+    newBook->copies = bookCopies;
+    newBook->year = bookYear;
+    newBook->next = NULL;
+
+    Book* bookPtr = headPtrBook->next;
+    while(bookPtr->next != NULL){
+        bookPtr = bookPtr->next;
     }
+    newBook->id = (bookPtr->id)+1;
+    bookPtr->next = newBook;
+
+    return 0;
+    }
+
 }
 // function to check if the book can be removed
 Book* checkRemoveBook(char *title, char *authors, unsigned int copies, unsigned int year){
@@ -405,14 +400,13 @@ void displayBookArray(BookArray bookArray){
 
 // function to display all books
 void displayBooks(){
-    // declare a book pointer to traverse the linked list for books
-    Book *bookPtr = headNodeBook.next;
+    Book* bookPtr = headPtrBook->next;
     printf("ID    Title                                                 Authors\
-                                               year  copies\n");
+                                            year  copies\n");
     
     while(bookPtr != NULL){
-        printf("%-2d    %-50s    %-50s    ",bookPtr->id, bookPtr->title, bookPtr->authors);
-        printf("%-4d  %-2d", bookPtr->year, bookPtr->copies);
+        printf("%-2d    %-50s    %-50s ",bookPtr->id, bookPtr->title, bookPtr->authors);
+        printf("%-4d  %-2d\n", bookPtr->year, bookPtr->copies);
         bookPtr = bookPtr->next;
     }
 }
@@ -562,7 +556,7 @@ void searchForBook(){
 int main(void){
     // declaration of users
     headPtrUser = (User*)malloc(sizeof(User));
-    headPtrUser->next = NULL;
+    headPtrUser->next = &librarian;
 
     // declaration of borrow book
     headPtrBorrowBoook = (BorrowBook*)malloc(sizeof(BorrowBook));
@@ -570,6 +564,7 @@ int main(void){
     // declaration of library administrator (librarian)
     librarian.username = "librarian";
     librarian.password = "librarian";
+    librarian.next = NULL;
 
     load_books("books.txt");
 
@@ -636,15 +631,7 @@ int main(void){
                                     scanf("%d", &copies);
                                     printf("Enter the number of book that you wish to add: ");
                                     scanf("%d",&year);
-                                    // check if there is such a book in the library
-                                    // book can be added
-                                    if(checkAddBooks(title,authors,copies,year)!=NULL){
-                                        add_book(*checkAddBooks(title,authors,copies,year));
-                                        printf("Book was successfully added!\n");
-                                        // book can not be added
-                                    }else{
-                                        printf("%s", invalidAddBook);
-                                    }
+                                    add_book(title, authors,copies,year);
                                     // remove a book
                                 }else if(*answer == '2'){
                                     char *title = NULL, *authors = NULL; 
@@ -750,8 +737,9 @@ int main(void){
             displayBooks();
         }else if(*answer == '5'){
             printf("Thank you for using the library!\n");
+            return 0;
         }
     }
     
-    return 0;
+
 }
