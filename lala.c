@@ -15,10 +15,6 @@ by author\n3) Find books by year\n4) Return to previous menu\n Option:";
 
     const char invalidOption[] = "Sorry, the option you entered was invalid, please try again.\n\n";
 
-    const char invalidAddBook[] = "Sorry, you attempted to add an invalid book, please try again.\n\n";
-    const char invalidRemoveBook[] = "Sorry, you attempted to remove an\
-invalid book, please try again.\n\n";
-
     const char userPrompt[] = "Please enter an option:\n1) Borrow a book\n2) Return a book\n\
 3) Search for book\n4) Display all books\n5) Log out\n Option: ";
 
@@ -56,30 +52,24 @@ typedef struct _BorrowBook{
 typedef struct _User {
     char *username;
     char *password;
-    Book *borrow;
     // books that the user borrow
     BorrowBook *borrowBook;
     struct _User*next;
 }User;
 
-// a head node that does not hold meaningful data for Books
-Book headNodeBook;
 // a head pointer that points to the head node of the book
 Book *headPtrBook;
 
-// a head node that does not hold meaning data for user
-User headNodeUser;
 // a head pointer that points to the head node of the user
 User *headPtrUser;
 
-// a head node that does not hold meaning data for the borrowed book
-BorrowBook headNodeBorrowBook;
 // a head pointer that points to the head node of the user
-BorrowBook *headPtrBorrowBoook;
+BorrowBook *headPtrBorrowBook;
 
 // declare a libaray administrator
 User librarian;
 
+/******************************************functions**********************************************/
 // function to make string a zero string
 void nullifyString(char *string){
     for(; *string != '\0'; *string++){
@@ -87,6 +77,7 @@ void nullifyString(char *string){
     }
     *string = '\0';
 }
+
 // function to find book by id
 Book* findBookByID (unsigned int id){
     // declare a book pointer to traverse the linked list for books
@@ -102,10 +93,10 @@ Book* findBookByID (unsigned int id){
 
 // function to borrow books for user
 void borrowBook(Book *book, User user){
-    BorrowBook* headPtrBorrowBoook = user.borrowBook;
+    BorrowBook* borrowBookPtr = user.borrowBook;
     // find the end of the borrowed book
-    while(headPtrBorrowBoook->next != NULL){
-        headPtrBorrowBoook = headPtrBorrowBoook->next;
+    while(borrowBookPtr->next != NULL){
+        borrowBookPtr = borrowBookPtr->next;
     }
     // new borrowBook
     BorrowBook* newBorrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
@@ -116,8 +107,7 @@ void borrowBook(Book *book, User user){
     newBorrowBook->next = NULL;
 
     // assign the new borrowBook
-    headPtrBorrowBoook->next = newBorrowBook;
-    
+    borrowBookPtr->next = newBorrowBook;
 }
 
 // function to check if the user borrow two same book
@@ -136,25 +126,30 @@ int checkSameBorrowBook(unsigned int id, User user){
 
 //saves the database of books in the specified file
 //returns 0 if books were stored correctly, or an error code otherwise
-int store_books(FILE *file){
-    file = fopen("books.txt","w");
-    Book* bookPtr;
+int store_books(const char* filename){
+    FILE *file;
+    file = fopen(filename, "w");
+    Book* bookPtr = headPtrBook->next;
+    char title[50];
+    char authors[50];
 
-    // file = fopen("books.bin","wb");
-    // if(file == NULL){
-    //     exit(0);
-    // }
+    if(!file){
+        return -1;
+    }
 
-    // int i;
-    // fwrite(arrayTwo, sizeof(Book),arrayOne.length, file);
-    // fclose(file);
-    // i = fwrite(arrayTwo, sizeof(Book),arrayOne.length, file);
-    
-    // if(i == arrayOne.length){
-    //     return 0;
-    // }else{
-    //     return -1;
-    // }
+    while(bookPtr){
+        strcpy(title,bookPtr->title);
+        strcpy(authors,bookPtr->authors);
+        // output the data of the node to the file books.txt
+        fprintf(file,"%u\n%s\n%s\n%u\n%u\n\n",bookPtr->id, title, authors,\
+        bookPtr->year, bookPtr->copies);
+        memset(title,'\0',sizeof(title));
+        memset(authors,'\0',sizeof(authors));
+        bookPtr = bookPtr->next;
+    }
+    fclose(file);
+
+    return 0;
 }
 
 
@@ -169,8 +164,7 @@ int load_books(const char* filename){
     FILE *file;
     file = fopen(filename, "r");
     if (!file) {
-        printf("Cannot open books");
-    return -1;
+        return -1;
 	}
     char str[50];
     while(!feof(file)){
@@ -200,26 +194,10 @@ int load_books(const char* filename){
         bookPtr = newBook;
     }
     bookPtr->next = NULL;
-
-    return 0;
-}
-/* int load_books(FILE *file){
-    file = fopen("books.bin","rb");
-    if(file == NULL){
-        exit(0);
-    }
-    int i;
-    fread(arrayTwo, sizeof(Book), arrayOne.length, file);
     fclose(file);
-    i = fread(arrayTwo, sizeof(Book), arrayOne.length, file);
 
-    if(i == arrayOne.length){
     return 0;
-    }else{
-        return -1;
-    }
 }
-*/
 
 //adds a book to the ones available to the library
 //returns 0 if the book could be added, or an error code otherwise
@@ -431,6 +409,7 @@ BorrowBook* checkReturnBook(unsigned int id, User user){
     }
     return borrowBookPtr;
 }
+
 // function to return the book
 void returnBook(BorrowBook* returnBook, User user){
     BorrowBook* borrowBookPtr = user.borrowBook->next;
@@ -440,6 +419,7 @@ void returnBook(BorrowBook* returnBook, User user){
     borrowBookPtr->next = returnBook->next;
     returnBook->next = NULL;
 }
+
 // function to check if the user name already exists
 int checkUsername(char *name){
     // declare a user pointer to traverse the linked list for the user
@@ -482,6 +462,108 @@ void storeUsername(char username[], char password[]){
     // newUser->borrow = NULL;
     newUser->next = NULL;
     usrPtr->next = newUser;
+}
+
+// function to store user in file
+int storeUserInFile(const char* filename){
+    FILE *file;
+    file = fopen(filename,"w");
+    if(!file){
+        return -1;
+    }
+    User* userPtr = headPtrUser->next;
+    char str[30];
+    BorrowBook* borrowBookPtr;
+    while(userPtr){
+        strcpy(str,userPtr->username);
+        fprintf(file,"%s\n",str);
+        memset(str,'\0',30);
+        
+        strcpy(str,userPtr->password);
+        fprintf(file,"%s\n\n",str);
+        memset(str,'\0',30);
+
+        borrowBookPtr = userPtr->borrowBook->next;
+        while(borrowBookPtr){
+            fprintf(file,"%u\n",borrowBookPtr->id);
+            strcpy(str,borrowBookPtr->title);
+            fprintf(file,"%s\n",str);
+            memset(str,'\0',30);
+            strcpy(str,borrowBookPtr->authors);
+            fprintf(file,"%s\n",borrowBookPtr->authors);
+            memset(str,'\0',30);
+            fprintf(file,"%u\n\n",borrowBookPtr->year);
+
+            borrowBookPtr = borrowBookPtr->next;
+        }
+        fprintf(file,"**********");
+        userPtr = userPtr->next;
+    }
+    fclose(file);
+    return 0;
+}
+
+int loadUser(const char* filename){
+    FILE *file;
+    file = fopen(filename,"r");
+    if(!file){
+        return -1;
+    }
+    BorrowBook* borrowBookPtr = headPtrBorrowBook;
+    BorrowBook* newBorrowBook;
+    User* userPtr;
+    User* newUser;
+    userPtr = headPtrUser;
+    char str[30];
+    while(!feof(file)){
+        newUser = (User*)malloc(sizeof(User));
+        newUser->borrowBook = headPtrBorrowBook;
+
+        fscanf(file,"%[^\n]s",str);
+        newUser->username = (char*)malloc(sizeof(str));
+        strcpy(newUser->username,str);
+        memset(str,'\0',strlen(str));
+        fgetc(file);
+
+        fscanf(file,"%[^\n]s",str);
+        newUser->password = (char*)malloc(sizeof(str));
+        strcpy(newUser->password,str);
+        memset(str,'\0',strlen(str));
+        fgetc(file);
+        fgetc(file);
+
+        fscanf(file,"%[^\n]s",str);
+        while(strcmp(str,"**********")){
+        newBorrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
+        fscanf(file,"%u",&newBorrowBook->id);
+        fgetc(file);
+
+        fscanf(file,"%[^\n]s",str);
+        newBorrowBook->title = (char*)malloc(sizeof(str));
+        strcpy(newBorrowBook->title,str);
+        memset(str,'\0',strlen(str));
+        fgetc(file);
+
+        fscanf(file,"%[^\n]s",str);
+        newBorrowBook->authors = (char*)malloc(sizeof(str));
+        strcpy(newBorrowBook->authors,str);
+        memset(str,'\0',strlen(str));
+        fgetc(file);
+
+        fscanf(file,"%u",&newBorrowBook->year);
+        borrowBookPtr->next = newBorrowBook;
+        borrowBookPtr = newBorrowBook;
+        fscanf(file,"%[^\n]s",str);
+        }
+
+        fgetc(file);
+        memset(str,'\0',strlen(str));
+        newUser->next = NULL;
+        userPtr->next = newUser;
+        userPtr = newUser;
+    }
+    fclose(file);
+    return 0;
 }
 
 // function to check password
@@ -556,14 +638,19 @@ int main(void){
     headPtrUser->next = &librarian;
 
     // declaration of borrow book
-    headPtrBorrowBoook = (BorrowBook*)malloc(sizeof(BorrowBook));
-    headPtrBorrowBoook->next = NULL;
+    headPtrBorrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
+    headPtrBorrowBook->next = NULL;
     // declaration of library administrator (librarian)
     librarian.username = "librarian";
     librarian.password = "librarian";
+    librarian.borrowBook = headPtrBorrowBook;
+    librarian.borrowBook->next = NULL;
     librarian.next = NULL;
 
     load_books("books.txt");
+    store_books("store.txt");
+    storeUserInFile("users.txt");
+    loadUser("users.txt");
 
     while(1){
         printf("%s",firstPrompt);
