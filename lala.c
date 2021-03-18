@@ -228,9 +228,9 @@ int add_book(char bookTitle[], char bookAuthors[], unsigned int bookCopies, unsi
         return -1;
     }else{
     Book* newBook = (Book*)malloc(sizeof(Book));
-    newBook->title = (char*)malloc(50*sizeof(char));
+    newBook->title = (char*)malloc(50);
     strcpy(newBook->title, bookTitle);
-    newBook->authors = (char*)malloc(50*sizeof(char));
+    newBook->authors = (char*)malloc(50);
     strcpy(newBook->authors, bookAuthors);
     newBook->copies = bookCopies;
     newBook->year = bookYear;
@@ -247,32 +247,29 @@ int add_book(char bookTitle[], char bookAuthors[], unsigned int bookCopies, unsi
     }
 
 }
-// function to check if the book can be removed
-Book* checkRemoveBook(char *title, char *authors, unsigned int copies, unsigned int year){
-    // declare a book pointer to traverse the linked list for books
-    Book* bookPtr = headNodeBook.next;
-    while(bookPtr != NULL){
-        if(!strcmp (bookPtr->title,title) && !strcmp(bookPtr->authors,authors) && \
-        bookPtr->copies == copies && bookPtr->year == year &&\
-        // the book can be removed if there is one book in the library
-        bookPtr->copies >= 1){
+
+//removes a book from the library
+//returns 0 if the book could be successfully removed, or an error code otherwise.
+int remove_book(char title[], char authors[], unsigned int copies, unsigned int year){
+    Book* bookPtr = headPtrBook;
+    while(bookPtr->next != NULL){
+        if(!strcmp (bookPtr->next->title,title) && !strcmp(bookPtr->next->authors,authors) && \
+        bookPtr->next->copies == copies && bookPtr->next->year == year){
             break;
         }
         bookPtr = bookPtr->next;
-    }
-    return bookPtr;
-}
-//removes a book from the library
-//returns 0 if the book could be successfully removed, or an error code otherwise.
-int remove_book(Book book){
-    // declare a book pointer get the address of the book
-    Book *bookPtr = &book;
+    }    
     // book can not be removed
     if(bookPtr == NULL){
         return 0;
     // book can be removed
     }else{
-        bookPtr->copies--;
+        bookPtr->next = bookPtr->next->next;
+        bookPtr = bookPtr->next;
+        while(bookPtr != NULL){
+            bookPtr->id--;
+            bookPtr = bookPtr->next;
+        }
         return 1;
     }
 }
@@ -619,6 +616,7 @@ int main(void){
                                     continue;
                                     // add a book
                                 }else if(*answer == '1'){
+                                    nullifyString(answerPtr);
                                     char title[50], authors[50];
                                     nullifyString(title);
                                     nullifyString(authors);
@@ -628,30 +626,36 @@ int main(void){
                                     printf("Enter the author of the book you wish to add: ");
                                     gets(authors);
                                     printf("Enter the year of that the book you wish to add: ");
-                                    scanf("%d", &copies);
+                                    scanf("%d", &year);
                                     printf("Enter the number of book that you wish to add: ");
-                                    scanf("%d",&year);
-                                    add_book(title, authors,copies,year);
+                                    scanf("%d",&copies);
+                                    getchar();
+                                    if(!add_book(title, authors,copies,year)){
+                                        printf("Books are added successfully!\n");
+                                    }else{
+                                        printf("Failed to add books.\n");
+                                    }
                                     // remove a book
                                 }else if(*answer == '2'){
-                                    char *title = NULL, *authors = NULL; 
+                                    nullifyString(answerPtr);
+                                    char title[50], authors[50];
+                                    nullifyString(title);
+                                    nullifyString(authors);
                                     unsigned int copies, year;
                                     printf("Enter the title of the book you wish to remove: ");
                                     gets(title);
                                     printf("Enter the author of the book you wish to remove: ");
                                     gets(authors);
                                     printf("Enter the year of that the book you wish to remove: ");
-                                    scanf("%d", &copies);
+                                    scanf("%u", &year);
                                     printf("Enter the number of book that you wish to remove: ");
-                                    scanf("%d",&year);
-                                    // check if there is such a book can be removed
-                                    // book can be removed 
-                                    if(checkRemoveBook(title,authors,copies,year) != NULL){
-                                        remove_book(*checkRemoveBook(title,authors,copies,year));
+                                    scanf("%u",&copies);
+                                    nullifyString(answerPtr);
+                                    getchar();
+                                    if(remove_book(title, authors, copies, year)){
                                         printf("Book was successfully removed!\n");
-                                        // book can not be removed
                                     }else{
-                                        printf("%s", invalidRemoveBook);
+                                        printf("Failed to remove book\n");
                                     }
                                     //search for a book
                                 }else if(*answer == '3'){
