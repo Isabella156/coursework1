@@ -496,7 +496,7 @@ int storeUserInFile(const char* filename){
 
             borrowBookPtr = borrowBookPtr->next;
         }
-        fprintf(file,"**********");
+        fprintf(file,"**********\n");
         userPtr = userPtr->next;
     }
     fclose(file);
@@ -534,28 +534,29 @@ int loadUser(const char* filename){
 
         fscanf(file,"%[^\n]s",str);
         while(strcmp(str,"**********")){
-        newBorrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
-        fscanf(file,"%u",&newBorrowBook->id);
-        fgetc(file);
+            newBorrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
+            fscanf(file,"%u",&newBorrowBook->id);
+            fgetc(file);
 
-        fscanf(file,"%[^\n]s",str);
-        newBorrowBook->title = (char*)malloc(sizeof(str));
-        strcpy(newBorrowBook->title,str);
-        memset(str,'\0',strlen(str));
-        fgetc(file);
+            fscanf(file,"%[^\n]s",str);
+            newBorrowBook->title = (char*)malloc(sizeof(str));
+            strcpy(newBorrowBook->title,str);
+            memset(str,'\0',strlen(str));
+            fgetc(file);
 
-        fscanf(file,"%[^\n]s",str);
-        newBorrowBook->authors = (char*)malloc(sizeof(str));
-        strcpy(newBorrowBook->authors,str);
-        memset(str,'\0',strlen(str));
-        fgetc(file);
+            fscanf(file,"%[^\n]s",str);
+            newBorrowBook->authors = (char*)malloc(sizeof(str));
+            strcpy(newBorrowBook->authors,str);
+            memset(str,'\0',strlen(str));
+            fgetc(file);
 
-        fscanf(file,"%u",&newBorrowBook->year);
-        borrowBookPtr->next = newBorrowBook;
-        borrowBookPtr = newBorrowBook;
-        fscanf(file,"%[^\n]s",str);
+            fscanf(file,"%u",&newBorrowBook->year);
+            borrowBookPtr->next = newBorrowBook;
+            borrowBookPtr = newBorrowBook;
+            fscanf(file,"%[^\n]s",str);
         }
 
+        fgetc(file);
         fgetc(file);
         memset(str,'\0',strlen(str));
         newUser->next = NULL;
@@ -648,7 +649,6 @@ int main(void){
     librarian.next = NULL;
 
     load_books("books.txt");
-    store_books("store.txt");
     storeUserInFile("users.txt");
     loadUser("users.txt");
 
@@ -677,11 +677,15 @@ int main(void){
             printf("Please enter a password: ");
             gets(answer2);
             storeUsername(answer, answer2);
+            storeUserInFile("users.txt");
             nullifyString(answerPtr);
             nullifyString(answerPtr2);
             // login
         }else if(*answer == '2'){
             while(1){
+                if(*answer == '5'){
+                    break;
+                }
                 printf("Please enter your username: ");
                 gets(answer);
                 if(checkUsername(answer)){
@@ -760,7 +764,7 @@ int main(void){
                         }else{
                             User currentUser = *checkPassword(answer,answer2);
                             while(1){
-                                printf("(logged in as: %s)\n",answer);
+                                printf("(logged in as: %s)\n",currentUser.username);
                                 printf("%s", userPrompt);
                                 nullifyString(answerPtr);
                                 gets(answer);
@@ -831,6 +835,4 @@ int main(void){
             return 0;
         }
     }
-    
-
 }
