@@ -709,20 +709,39 @@ int main(void){
                                 }else if(*answer == '1'){
                                     nullifyString(answerPtr);
                                     char title[50], authors[50];
+                                    char copiesStr[10], yearStr[10];
                                     nullifyString(title);
                                     nullifyString(authors);
+                                    nullifyString(copiesStr);
+                                    nullifyString(yearStr);
                                     unsigned int copies, year;
                                     printf("Enter the title of the book you wish to add: ");
                                     gets(title);
                                     printf("Enter the author of the book you wish to add: ");
                                     gets(authors);
                                     printf("Enter the year of that the book you wish to add: ");
-                                    scanf("%d", &year);
+                                    gets(yearStr);
+                                    if(yearStr[0]<='0' || yearStr[0]>'9'){
+                                        printf("Invalid year!\n");
+                                        continue;
+                                    }else if(atoi(yearStr) > 2021){
+                                        printf("Invalid year!\n");
+                                        continue;
+                                    }else{
+                                        year = atoi(yearStr);
+                                    }
                                     printf("Enter the number of book that you wish to add: ");
-                                    scanf("%d",&copies);
+                                    gets(copiesStr);
+                                    if(copiesStr[0]<='0' || copiesStr[0]>'9'){
+                                        printf("Invalid copies!\n");
+                                        continue;
+                                    }else{
+                                        copies = atoi(copiesStr);
+                                    }
                                     getchar();
                                     if(!add_book(title, authors,copies,year)){
                                         printf("Books are added successfully!\n");
+                                        store_books("books.txt");
                                     }else{
                                         printf("Failed to add books.\n");
                                     }
@@ -730,21 +749,40 @@ int main(void){
                                 }else if(*answer == '2'){
                                     nullifyString(answerPtr);
                                     char title[50], authors[50];
+                                    char copiesStr[10], yearStr[10];
                                     nullifyString(title);
                                     nullifyString(authors);
+                                    nullifyString(copiesStr);
+                                    nullifyString(yearStr);
                                     unsigned int copies, year;
                                     printf("Enter the title of the book you wish to remove: ");
                                     gets(title);
                                     printf("Enter the author of the book you wish to remove: ");
                                     gets(authors);
                                     printf("Enter the year of that the book you wish to remove: ");
-                                    scanf("%u", &year);
+                                    gets(yearStr);
+                                    if(yearStr[0]<='0' || yearStr[0]>'9'){
+                                        printf("Invalid year!\n");
+                                        continue;
+                                    }else if(atoi(yearStr) > 2021){
+                                        printf("Invalid year!\n");
+                                        continue;
+                                    }else{
+                                        year = atoi(yearStr);
+                                    }
                                     printf("Enter the number of book that you wish to remove: ");
-                                    scanf("%u",&copies);
+                                    gets(copiesStr);
+                                    if(copiesStr[0]<='0' || copiesStr[0]>'9'){
+                                        printf("Invalid copies!\n");
+                                        continue;
+                                    }else{
+                                        copies = atoi(copiesStr);
+                                    }
                                     nullifyString(answerPtr);
                                     getchar();
                                     if(remove_book(title, authors, copies, year)){
                                         printf("Book was successfully removed!\n");
+                                        store_books("books.txt");
                                     }else{
                                         printf("Failed to remove book\n");
                                     }
