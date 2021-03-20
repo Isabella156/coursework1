@@ -1,6 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../include/book_management.h"
+#include "../include/user.h"
+#include "../include/interface.h"
+#include <string.h>
+
+const char searchMenu[] = "Please choose an option:\n1) Find books by title\n2) Find books \
+by author\n3) Find books by year\n4) Return to previous menu\n Option:";
+
+const char noSuchBook[] = "Sorry, no such book.\n";
+
+extern Book* headPtrBook;
 
 //saves the database of books in the specified file
 //returns 0 if books were stored correctly, or an error code otherwise
@@ -308,58 +318,66 @@ void returnBook(BorrowBook* returnBook, User user){
 
 // function to 
 // function to search for a book
-void searchForBook(){
+void searchForBook(char myAnswer[50]){
+    memset(myAnswer, '\0', 50);
     while (1){
         printf("Loading search menu...\n\n");
         printf("%s",searchMenu);
-        gets(answer);
+        gets(myAnswer);
         // wrong option
-        if(*answer <'1' || *answer > '4'){
-            printf("%s", invalidOption);
+        if(*myAnswer <'1' || *myAnswer > '4'){
+            printf("Sorry, the option you entered was invalid, please try again.\n\n");
             // find books by title
-        }else if(*answer == '1'){
-            nullifyString(answerPtr);
+        }else if(*myAnswer == '1'){
+            memset(myAnswer,'\0',50);
             printf("Please enter the title: ");
-            gets(answer);
+            gets(myAnswer);
             // find the book
-            if(find_book_by_title(answer).array->next != NULL){
-                displayBookArray(find_book_by_title(answer));
+            if(find_book_by_title(myAnswer).array->next != NULL){
+                displayBookArray(find_book_by_title(myAnswer));
                 // can not find the book
             }else{
                 printf("%s", noSuchBook);
             }
             // find books by author
-        }else if(*answer == '2'){
-            nullifyString(answerPtr);
+        }else if(*myAnswer == '2'){
+            memset(myAnswer,'\0',50);
             printf("Please enter the author: ");
-            gets(answer);
+            gets(myAnswer);
             // find the book
-            if(find_book_by_author(answer).array->next != NULL){
-                displayBookArray(find_book_by_author(answer));
+            if(find_book_by_author(myAnswer).array->next != NULL){
+                displayBookArray(find_book_by_author(myAnswer));
                 // can not find the book
             }else{
                 printf("%s", noSuchBook);
             }
             // find books by year
-        }else if(*answer == '3'){
+        }else if(*myAnswer == '3'){
             printf("Please enter the year: ");
-            gets(answer);
-            if(find_book_by_year(atoi(answer)).array->next != NULL){
-                displayBookArray(find_book_by_year(atoi(answer)));
+            gets(myAnswer);
+            if(find_book_by_year(atoi(myAnswer)).array->next != NULL){
+                displayBookArray(find_book_by_year(atoi(myAnswer)));
             }else{
                 printf("%s", noSuchBook);
             }
             // return to previous menu
-        }else if(*answer == '4'){
+        }else if(*myAnswer == '4'){
             break;
         }
     }
 }
 
-// function to make string a zero string
-void nullifyString(char *string){
-    for(; *string != '\0'; *string++){
-        *string = '\0';
+// function to display the book array
+void displayBookArray(BookArray bookArray){
+    // declare a book pointer to traverse the linked list for books
+    Book *bookPtr = bookArray.array->next;
+    printf("ID    Title                                                 Authors\
+                                            year  copies\n");
+    while(bookPtr != NULL){
+        printf("%-2d    %-50s    %-50s ",bookPtr->id, bookPtr->title, bookPtr->authors);
+        printf("%-4d  %-2d\n", bookPtr->year, bookPtr->copies);
+        bookPtr = bookPtr->next;
     }
-    *string = '\0';
 }
+
+

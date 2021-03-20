@@ -1,5 +1,14 @@
 #include "../include/user.h"
 
+// a head pointer that points to the head node of the user
+User *headPtrUser;
+
+// a head pointer that points to the head node of the user
+BorrowBook *headPtrBorrowBook;
+
+// declare a libaray administrator
+User librarian;
+
 // function to check if the user name already exists
 int checkUsername(char *name){
     // declare a user pointer to traverse the linked list for the user

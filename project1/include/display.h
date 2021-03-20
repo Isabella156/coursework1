@@ -1,5 +1,2 @@
-#include "book_management.h"
+#include <stdio.h>
 
-void displayBookArray(BookArray bookArray);
-void displayBooks();
-void displayBorrowBooks(User user);
