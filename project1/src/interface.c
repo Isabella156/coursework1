@@ -1,5 +1,4 @@
-#include "../include/user.h"
-#include "../include/book_management.h"
+#include "../include/interface.h"
 
 extern Book* headPtrBook;
 extern User* headPtrUser;
@@ -41,9 +40,9 @@ int interface(){
 
 
 
-    load_books("books.txt");
-    storeUserInFile("users.txt");
-    loadUser("users.txt");
+    load_books();
+    storeUserInFile();
+    loadUser();
 
     while(1){
         printf("%s",firstPrompt);

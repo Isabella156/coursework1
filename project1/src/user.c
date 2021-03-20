@@ -1,15 +1,8 @@
 #include "../include/user.h"
 
-// a head pointer that points to the head node of the user
-User *headPtrUser;
+extern User* headPtrUser;
+extern BorrowBook* headPtrBorrowBook;
 
-// a head pointer that points to the head node of the user
-BorrowBook *headPtrBorrowBook;
-
-// declare a libaray administrator
-User librarian;
-
-// function to check if the user name already exists
 int checkUsername(char *name){
     // declare a user pointer to traverse the linked list for the user
     User *usrPtr = headPtrUser->next;
@@ -25,7 +18,7 @@ int checkUsername(char *name){
     return i;
 }
 
-// function to store username
+
 void storeUsername(char username[], char password[]){
     // declare a user pointer to traverse the linked list for the username
     User* usrPtr = headPtrUser;
@@ -53,10 +46,10 @@ void storeUsername(char username[], char password[]){
     usrPtr->next = newUser;
 }
 
-// function to store user in file
-int storeUserInFile(const char* filename){
+
+int storeUserInFile(){
     FILE *file;
-    file = fopen(filename,"w");
+    file = fopen("../users.txt","w");
     if(!file){
         return -1;
     }
@@ -92,9 +85,9 @@ int storeUserInFile(const char* filename){
     return 0;
 }
 
-int loadUser(const char* filename){
+int loadUser(){
     FILE *file;
-    file = fopen(filename,"r");
+    file = fopen("../users.txt","r");
     if(!file){
         return -1;
     }
@@ -156,7 +149,6 @@ int loadUser(const char* filename){
     return 0;
 }
 
-// function to check password
 User* checkPassword(char *username, char *password){
     // declare a user pointer to traverse the linked list for user
     User *userPtr = headPtrUser->next;
