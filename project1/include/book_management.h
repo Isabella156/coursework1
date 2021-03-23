@@ -6,6 +6,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+extern Book* headPtrBook;
+extern char searchMenu[];
+extern char answer[];
+extern char noSuchBook[];
+extern char invalidOption[];
+
 
 //saves the database of books in the specified file
 //returns 0 if books were stored correctly, or an error code otherwise
@@ -19,7 +25,7 @@ int load_books();
 int add_book(char bookTitle[], char bookAuthors[], unsigned int bookCopies, unsigned int bookYear);
 //removes a book from the library
 //returns 0 if the book could be successfully removed, or an error code otherwise.
-int remove_book(char title[], char authors[], unsigned int copies, unsigned int year);
+int remove_book(char title[], char authors[],unsigned int year);
 //finds books with a given title.
 //returns a BookArray structure, where the field "array" is a newly allocated array of books, or null if no book with the 
 //provided title can be found. The length of the array is also recorded in the returned structure, with 0 in case
@@ -46,5 +52,5 @@ BorrowBook* checkReturnBook(unsigned int id, User user);
 // function to return the book
 void returnBook(BorrowBook* returnBook, User user);
 // function to search for a book
-void searchForBook(char myAnswer[50]);
+void searchForBook();
 #endif

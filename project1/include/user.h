@@ -3,6 +3,9 @@
 #include <string.h>
 #include "../include/global.h"
 
+extern User* headPtrUser;
+extern BorrowBook* headPtrBorrowBook;
+
 // function to check if the user name already exists
 int checkUsername(char *name);
 // function to store username

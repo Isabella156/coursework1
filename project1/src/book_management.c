@@ -1,20 +1,16 @@
 
 #include "../include/book_management.h"
-
-
-extern char searchMenu[];
-extern char noSuchBook[];
-
-extern Book* headPtrBook;
+#include "../include/display.h"
 
 int store_books(){
     FILE *file;
-    file = fopen("../books.txt", "w");
+    file = fopen("books.txt", "w");
     Book* bookPtr = headPtrBook->next;
     char title[50];
     char authors[50];
 
     if(!file){
+        printf("Error in handling files!\n");
         return -1;
     }
 
@@ -22,8 +18,13 @@ int store_books(){
         strcpy(title,bookPtr->title);
         strcpy(authors,bookPtr->authors);
         // output the data of the node to the file books.txt
-        fprintf(file,"%u\n%s\n%s\n%u\n%u\n\n",bookPtr->id, title, authors,\
+        if(bookPtr->next == NULL){
+            fprintf(file,"%u\n%s\n%s\n%u\n%u",bookPtr->id, title, authors,\
         bookPtr->year, bookPtr->copies);
+        }else{
+            fprintf(file,"%u\n%s\n%s\n%u\n%u\n\n",bookPtr->id, title, authors,\
+        bookPtr->year, bookPtr->copies);
+        }
         memset(title,'\0',sizeof(title));
         memset(authors,'\0',sizeof(authors));
         bookPtr = bookPtr->next;
@@ -34,13 +35,13 @@ int store_books(){
 }
 
 int load_books(){
-    headPtrBook = (Book*)malloc(sizeof(Book*));
     Book* bookPtr;
     Book* newBook;
     bookPtr = headPtrBook;
     FILE *file;
-    file = fopen("../books.txt", "r");
+    file = fopen("books.txt", "r");
     if (!file) {
+        printf("Error in handling files!\n");
         return -1;
 	}
     char str[50];
@@ -101,17 +102,17 @@ int add_book(char bookTitle[], char bookAuthors[], unsigned int bookCopies, unsi
 
 }
 
-int remove_book(char title[], char authors[], unsigned int copies, unsigned int year){
+int remove_book(char title[], char authors[], unsigned int year){
     Book* bookPtr = headPtrBook;
     while(bookPtr->next != NULL){
         if(!strcmp (bookPtr->next->title,title) && !strcmp(bookPtr->next->authors,authors) && \
-        bookPtr->next->copies == copies && bookPtr->next->year == year){
+         bookPtr->next->year == year){
             break;
         }
         bookPtr = bookPtr->next;
     }    
     // book can not be removed
-    if(bookPtr == NULL){
+    if(bookPtr->next == NULL){
         return 0;
     // book can be removed
     }else{
@@ -125,19 +126,18 @@ int remove_book(char title[], char authors[], unsigned int copies, unsigned int 
     }
 }
 
-
 BookArray find_book_by_title (const char *title){
     // declare a BookArray
     BookArray titleArray;
     // initialize the book array
-    titleArray.array = headPtrBook;
+    titleArray.array = (Book*)malloc(sizeof(Book));
     titleArray.length = 0;
 
     Book* arrayPtr = titleArray.array;
 
     Book* bookPtr = headPtrBook->next;
     while(bookPtr != NULL){
-        if(!strcmp(bookPtr->title,title)){
+        if(strstr(bookPtr->title,title)){
             Book* newArray = (Book*)malloc(sizeof(Book));
             newArray->id = bookPtr->id;
             newArray->title = bookPtr->title;
@@ -162,14 +162,14 @@ BookArray find_book_by_author (const char *author){
     // declare a BookArray
     BookArray authorArray;
     // initialize the book array
-    authorArray.array = headPtrBook;
+    authorArray.array = (Book*)malloc(sizeof(Book));
     authorArray.length = 0;
 
     Book* arrayPtr = authorArray.array;
 
     Book* bookPtr = headPtrBook->next;
     while(bookPtr != NULL){
-        if(!strcmp(bookPtr->authors,author)){
+        if(strstr(bookPtr->authors,author)){
             Book* newArray = (Book*)malloc(sizeof(Book));
             newArray->id = bookPtr->id;
             newArray->title = bookPtr->title;
@@ -194,7 +194,7 @@ BookArray find_book_by_year (unsigned int year){
         // declare a BookArray
     BookArray yearArray;
     // initialize the book array
-    yearArray.array = headPtrBook;
+    yearArray.array = (Book*)malloc(sizeof(Book));
     yearArray.length = 0;
 
     Book* arrayPtr = yearArray.array;
@@ -234,14 +234,13 @@ Book* findBookByID (unsigned int id){
     return bookPtr;
 }
 
-
-void borrowBook(Book *book, User user){
+void borrowBook(Book* book, User user){
+    book->copies--;
     BorrowBook* borrowBookPtr = user.borrowBook;
     // find the end of the borrowed book
     while(borrowBookPtr->next != NULL){
         borrowBookPtr = borrowBookPtr->next;
     }
-    book->copies--;
     // new borrowBook
     BorrowBook* newBorrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
     newBorrowBook->id = book->id;
@@ -287,50 +286,54 @@ void returnBook(BorrowBook* returnBook, User user){
     returnBook->next = NULL;
 }
 
-void searchForBook(char myAnswer[50]){
-    memset(myAnswer, '\0', 50);
+void searchForBook(){
     while (1){
         printf("Loading search menu...\n\n");
         printf("%s",searchMenu);
-        gets(myAnswer);
+        scanf("%s",answer);
         // wrong option
-        if(*myAnswer <'1' || *myAnswer > '4'){
-            printf("Sorry, the option you entered was invalid, please try again.\n\n");
+        if(*answer <'1' || *answer > '4' || strlen(answer) >1){
+            printf("%s", invalidOption);
             // find books by title
-        }else if(*myAnswer == '1'){
-            memset(myAnswer,'\0',50);
+        }else if(*answer == '1'){
+            memset(answer,'\0',50);
+            getchar();
             printf("Please enter the title: ");
-            gets(myAnswer);
+            scanf("%[^\n]s",answer);
             // find the book
-            if(find_book_by_title(myAnswer).array->next != NULL){
-                displayBookArray(find_book_by_title(myAnswer));
+            if(find_book_by_title(answer).array->next != NULL){
+                displayBookArray(find_book_by_title(answer));
                 // can not find the book
             }else{
                 printf("%s", noSuchBook);
+                printf("********************\n");
             }
             // find books by author
-        }else if(*myAnswer == '2'){
-            memset(myAnswer,'\0',50);
+        }else if(*answer == '2'){
+            getchar();
+            memset(answer,'\0',50);
             printf("Please enter the author: ");
-            gets(myAnswer);
+            scanf("%[^\n]s",answer);
             // find the book
-            if(find_book_by_author(myAnswer).array->next != NULL){
-                displayBookArray(find_book_by_author(myAnswer));
+            if(find_book_by_author(answer).array->next != NULL){
+                displayBookArray(find_book_by_author(answer));
                 // can not find the book
             }else{
                 printf("%s", noSuchBook);
+                printf("********************\n");
             }
             // find books by year
-        }else if(*myAnswer == '3'){
+        }else if(*answer == '3'){
             printf("Please enter the year: ");
-            gets(myAnswer);
-            if(find_book_by_year(atoi(myAnswer)).array->next != NULL){
-                displayBookArray(find_book_by_year(atoi(myAnswer)));
+            scanf("%s",answer);
+            if(find_book_by_year(atoi(answer)).array->next != NULL){
+                displayBookArray(find_book_by_year(atoi(answer)));
             }else{
                 printf("%s", noSuchBook);
+                printf("********************\n");
             }
             // return to previous menu
-        }else if(*myAnswer == '4'){
+        }else if(*answer == '4'){
             break;
         }
     }

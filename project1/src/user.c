@@ -1,8 +1,5 @@
 #include "../include/user.h"
 
-extern User* headPtrUser;
-extern BorrowBook* headPtrBorrowBook;
-
 int checkUsername(char *name){
     // declare a user pointer to traverse the linked list for the user
     User *usrPtr = headPtrUser->next;
@@ -17,7 +14,6 @@ int checkUsername(char *name){
 
     return i;
 }
-
 
 void storeUsername(char username[], char password[]){
     // declare a user pointer to traverse the linked list for the username
@@ -40,6 +36,7 @@ void storeUsername(char username[], char password[]){
     memset(str,'\0',30);
 
     newUser->borrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
+    newUser->borrowBook->next = (BorrowBook*)malloc(sizeof(BorrowBook));
     newUser->borrowBook->next = NULL;
     // newUser->borrow = NULL;
     newUser->next = NULL;
