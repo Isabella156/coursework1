@@ -63,12 +63,6 @@ static Book *headPtrBook;
 // a head pointer that points to the head node of the user
 static User *headPtrUser;
 
-// a head pointer that points to the head node of the user
-static BorrowBook *headPtrBorrowBook;
-
-// declare a libaray administrator
-static User librarian;
-
 /******************************************functions**********************************************/
 // function to find book by id
 Book* findBookByID (unsigned int id){
@@ -227,17 +221,17 @@ int add_book(char bookTitle[], char bookAuthors[], unsigned int bookCopies, unsi
 
 //removes a book from the library
 //returns 0 if the book could be successfully removed, or an error code otherwise.
-int remove_book(char title[], char authors[], unsigned int copies, unsigned int year){
+int remove_book(char title[], char authors[], unsigned int year){
     Book* bookPtr = headPtrBook;
     while(bookPtr->next != NULL){
         if(!strcmp (bookPtr->next->title,title) && !strcmp(bookPtr->next->authors,authors) && \
-        bookPtr->next->copies == copies && bookPtr->next->year == year){
+         bookPtr->next->year == year){
             break;
         }
         bookPtr = bookPtr->next;
     }    
     // book can not be removed
-    if(bookPtr == NULL){
+    if(bookPtr->next == NULL){
         return 0;
     // book can be removed
     }else{
@@ -266,7 +260,7 @@ BookArray find_book_by_title (const char *title){
 
     Book* bookPtr = headPtrBook->next;
     while(bookPtr != NULL){
-        if(!strcmp(bookPtr->title,title)){
+        if(strstr(bookPtr->title,title)){
             Book* newArray = (Book*)malloc(sizeof(Book));
             newArray->id = bookPtr->id;
             newArray->title = bookPtr->title;
@@ -302,7 +296,7 @@ BookArray find_book_by_author (const char *author){
 
     Book* bookPtr = headPtrBook->next;
     while(bookPtr != NULL){
-        if(!strcmp(bookPtr->authors,author)){
+        if(strstr(bookPtr->authors,author)){
             Book* newArray = (Book*)malloc(sizeof(Book));
             newArray->id = bookPtr->id;
             newArray->title = bookPtr->title;
@@ -471,16 +465,16 @@ int storeUserInFile(){
         return -1;
     }
     User* userPtr = headPtrUser->next;
-    char str[30];
+    char str[50];
     BorrowBook* borrowBookPtr;
     while(userPtr){
         strcpy(str,userPtr->username);
         fprintf(file,"%s\n",str);
-        memset(str,'\0',30);
+        memset(str,'\0',50);
 
         strcpy(str,userPtr->password);
         fprintf(file,"%s\n\n",str);
-        memset(str,'\0',30);
+        memset(str,'\0',50);
 
         borrowBookPtr = userPtr->borrowBook->next;
         while(borrowBookPtr){
@@ -495,6 +489,7 @@ int storeUserInFile(){
 
             borrowBookPtr = borrowBookPtr->next;
         }
+
         if(userPtr->next == NULL){
             fprintf(file,"**********");
         }else{
@@ -513,15 +508,22 @@ int loadUser(){
         printf("Error in handling files!\n");
         return -1;
     }
-    BorrowBook* borrowBookPtr = headPtrBorrowBook;
+    BorrowBook* borrowBookPtr;
     BorrowBook* newBorrowBook;
     User* userPtr;
     User* newUser;
     userPtr = headPtrUser;
-    char str[30];
+    char str[50];
     while(!feof(file)){
         newUser = (User*)malloc(sizeof(User));
-        newUser->borrowBook = headPtrBorrowBook;
+        newUser->borrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
+        newUser->borrowBook->authors = NULL;
+        newUser->borrowBook->id = 0;
+        newUser->borrowBook->title = NULL;
+        newUser->borrowBook->year = 0;
+        // newUser->borrowBook->next = (BorrowBook*)malloc(sizeof(BorrowBook));
+
+        borrowBookPtr = newUser->borrowBook;
 
         fscanf(file,"%[^\n]s",str);
         newUser->username = (char*)malloc(sizeof(str));
@@ -536,10 +538,12 @@ int loadUser(){
         fgetc(file);
         fgetc(file);
 
+        // for the ******
         fscanf(file,"%[^\n]s",str);
         while(strcmp(str,"**********")){
             newBorrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
-            fscanf(file,"%u",&newBorrowBook->id);
+            newBorrowBook->id = atoi(str);
+            memset(str,'\0',strlen(str));
             fgetc(file);
 
             fscanf(file,"%[^\n]s",str);
@@ -557,11 +561,15 @@ int loadUser(){
             fscanf(file,"%u",&newBorrowBook->year);
             borrowBookPtr->next = newBorrowBook;
             borrowBookPtr = newBorrowBook;
+            fgetc(file);
+            fgetc(file);
+            
             fscanf(file,"%[^\n]s",str);
         }
+        borrowBookPtr->next = NULL;
+        // for the /n
+        fgetc(file);
 
-        fgetc(file);
-        fgetc(file);
         memset(str,'\0',strlen(str));
         newUser->next = NULL;
         userPtr->next = newUser;
@@ -600,9 +608,9 @@ void searchForBook(){
             // find books by title
         }else if(*answer == '1'){
             memset(answer,'\0',50);
+            getchar();
             printf("Please enter the title: ");
             scanf("%[^\n]s",answer);
-            getchar();
             // find the book
             if(find_book_by_title(answer).array->next != NULL){
                 displayBookArray(find_book_by_title(answer));
@@ -613,6 +621,7 @@ void searchForBook(){
             }
             // find books by author
         }else if(*answer == '2'){
+            getchar();
             memset(answer,'\0',50);
             printf("Please enter the author: ");
             scanf("%[^\n]s",answer);
@@ -651,30 +660,33 @@ int main(void){
     headPtrBook->copies = 0;
     headPtrBook->next = NULL;
 
+
+
+    // declaration of library administrator (librarian)
+    User* librarian = (User*)malloc(sizeof(User));
+    char string[10] = "librarian";
+    librarian->username = (char*)malloc(sizeof(string));
+    librarian->password = (char*)malloc(sizeof(string));
+    librarian->username = string;
+    librarian->password = string;
+    librarian->borrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
+    librarian->borrowBook->authors = NULL;
+    librarian->borrowBook->id = 0;
+    librarian->borrowBook->title = NULL;
+    librarian->borrowBook->year = 0;
+    librarian->borrowBook->next = NULL;
+    librarian->next = NULL;
+
+
     // declaration of users
     headPtrUser = (User*)malloc(sizeof(User));
     headPtrUser->username = NULL;
     headPtrUser->password = NULL;
     headPtrUser->borrowBook = NULL;
-    headPtrUser->next = &librarian;
+    headPtrUser->next = librarian;
 
-    // declaration of borrow book
-    headPtrBorrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
-    headPtrBorrowBook->id = 0;
-    headPtrBorrowBook->title = NULL;
-    headPtrBorrowBook->authors = NULL;
-    headPtrBorrowBook->year = 0;
-    headPtrBorrowBook->next = NULL;
-
-    // declaration of library administrator (librarian)
-    librarian.username = "librarian";
-    librarian.password = "librarian";
-    librarian.borrowBook = headPtrBorrowBook;
-    librarian.borrowBook->next = NULL;
-    librarian.next = NULL;
-
+    // storeUserInFile();
     load_books();
-    storeUserInFile();
     loadUser();
 
     while(1){
@@ -700,7 +712,7 @@ int main(void){
             memset(answer2,'\0',50);
             scanf("%s",answer2);
             storeUsername(answer, answer2);
-            storeUserInFile("users.txt");
+            storeUserInFile();
             memset(answer,'\0',50);
             memset(answer2,'\0',50);
             printf("Registered successfully!\n");
@@ -782,6 +794,7 @@ int main(void){
                                 }
                                 // remove a book
                             }else if(*answer == '2'){
+                                getchar();
                                 memset(answer,'\0',50);
                                 char title[50], authors[50];
                                 char copiesStr[10], yearStr[10];
@@ -792,10 +805,23 @@ int main(void){
                                 unsigned int copies, year;
                                 printf("Enter the title of the book you wish to remove: ");
                                 scanf("%[^\n]s",title);
+                                getchar();
+                                if(find_book_by_title(title).array->next == NULL){
+                                    printf("Invalid book!\n");
+                                    printf("********************\n");
+                                    continue;
+                                }
                                 printf("Enter the author of the book you wish to remove: ");
                                 scanf("%[^\n]s",authors);
+                                getchar();
+                                if(find_book_by_author(authors).array->next == NULL){
+                                    printf("Invalid book!\n");
+                                    printf("********************\n");
+                                    continue;
+                                }
                                 printf("Enter the year of that the book you wish to remove: ");
                                 scanf("%[^\n]s",yearStr);
+                                getchar();
                                 if(yearStr[0]<='0' || yearStr[0]>'9'){
                                     printf("Invalid year!\n");
                                     printf("********************\n");
@@ -804,20 +830,14 @@ int main(void){
                                     printf("Invalid year!\n");
                                     printf("********************\n");
                                     continue;
-                                }else{
-                                    year = atoi(yearStr);
-                                }
-                                printf("Enter the number of book that you wish to remove: ");
-                                scanf("%[^\n]s",copiesStr);
-                                if(copiesStr[0]<='0' || copiesStr[0]>'9'){
-                                    printf("Invalid copies!\n");
+                                }else if(find_book_by_year(atoi(yearStr)).array->next == NULL){
+                                    printf("Invalid year!\n");
                                     printf("********************\n");
                                     continue;
                                 }else{
-                                    copies = atoi(copiesStr);
+                                    year = atoi(yearStr);
                                 }
-                                memset(answer,'\0',50);
-                                if(remove_book(title, authors, copies, year)){
+                                if(remove_book(title, authors, year)){
                                     printf("Book was successfully removed!\n");
                                     printf("********************\n");
                                     store_books();
@@ -841,9 +861,9 @@ int main(void){
                     }else{
                         User currentUser = *checkPassword(answer,answer2);
                         while(1){
+                            memset(answer,'\0',50);
                             printf("(logged in as: %s)\n",currentUser.username);
                             printf("%s", userPrompt);
-                            memset(answer,'\0',50);
                             scanf("%s",answer);
                             // wrong option
                             if(*answer < '1' || *answer > '5'){
@@ -860,8 +880,10 @@ int main(void){
                                 findBookByID(atoi(answer))->copies >= 0 && !checkSameBorrowBook\
                                 (atoi(answer),currentUser)){
                                     borrowBook(findBookByID(atoi(answer)),currentUser);
+                                    storeUserInFile();
                                     printf("You have successfully borrowed the book!\n");
                                     printf("********************\n");
+                                    getchar();
                                     // the book is already borrowed
                                 }else if(checkSameBorrowBook(atoi(answer),currentUser)){
                                     printf\
@@ -888,6 +910,7 @@ int main(void){
                                         returnBook(checkReturnBook(atoi(answer),currentUser),\
                                         currentUser);
                                         findBookByID(atoi(answer))->copies++;
+                                        storeUserInFile();
                                         printf("Returned book successfully!.\n");
                                         printf("********************\n");
                                     }else{
