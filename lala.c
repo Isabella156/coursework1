@@ -450,6 +450,7 @@ void storeUsername(char username[], char password[]){
     memset(str,'\0',30);
 
     newUser->borrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
+    newUser->borrowBook->next = (BorrowBook*)malloc(sizeof(BorrowBook));
     newUser->borrowBook->next = NULL;
     // newUser->borrow = NULL;
     newUser->next = NULL;
@@ -658,6 +659,7 @@ int main(void){
     headPtrBook->authors = NULL;
     headPtrBook->year = 0;
     headPtrBook->copies = 0;
+    headPtrBook->next = (Book*)malloc(sizeof(Book));
     headPtrBook->next = NULL;
 
 
@@ -674,6 +676,7 @@ int main(void){
     librarian->borrowBook->id = 0;
     librarian->borrowBook->title = NULL;
     librarian->borrowBook->year = 0;
+    librarian->borrowBook->next = (BorrowBook*)malloc(sizeof(BorrowBook));
     librarian->borrowBook->next = NULL;
     librarian->next = NULL;
 
@@ -683,9 +686,10 @@ int main(void){
     headPtrUser->username = NULL;
     headPtrUser->password = NULL;
     headPtrUser->borrowBook = NULL;
+    headPtrUser->next = (User*)malloc(sizeof(User));
     headPtrUser->next = librarian;
 
-    // storeUserInFile();
+    storeUserInFile();
     load_books();
     loadUser();
 
