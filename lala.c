@@ -22,6 +22,7 @@ by author\n3) Find books by year\n4) Return to previous menu\n Option:";
 
     char answer[50];
     char answer2[50];
+    char answer3[50];
     char *answerPtr = answer;
     char *answerPtr2 = answer2;
 /**********************************global variables*********************************/
@@ -32,6 +33,7 @@ typedef struct _Book {
     char *authors; //comma separated list of authors
     unsigned int year; // year of publication
     unsigned int copies; //number of copies the library has
+    unsigned int initialCopies; // initial number of copies
     struct _Book *next;
 }Book;
 
@@ -50,6 +52,7 @@ typedef struct _BorrowBook{
 
 // declare a struct to store user
 typedef struct _User {
+    char *name;
     char *username;
     char *password;
     // books that the user borrow
@@ -182,6 +185,7 @@ int load_books(){
         fgetc(file);
 
         fscanf(file,"%u",&newBook->copies);
+        newBook->initialCopies = newBook->copies;
         fgetc(file);
         bookPtr->next = newBook;
         bookPtr = newBook;
@@ -231,7 +235,7 @@ int remove_book(char title[], char authors[], unsigned int year){
         bookPtr = bookPtr->next;
     }    
     // book can not be removed
-    if(bookPtr->next == NULL){
+    if(bookPtr->next == NULL || bookPtr->copies != bookPtr->initialCopies){
         return 0;
     // book can be removed
     }else{
@@ -429,25 +433,32 @@ int checkUsername(char *name){
 }
 
 // function to store username
-void storeUsername(char username[], char password[]){
+void storeUsername(char name[], char username[], char password[]){
     // declare a user pointer to traverse the linked list for the username
     User* usrPtr = headPtrUser;
     while(usrPtr->next != NULL){
         usrPtr = usrPtr->next;
     }
     // declare a user pointer to store the new user and allocate the memory
-    User *newUser = (User *)malloc(sizeof(User*));
-    char str[30];
+    User *newUser = (User *)malloc(sizeof(User));
+    char str[50];
+    memset(str,'\0',50);
+
+    strcpy(str, name);
+    newUser->name = (char*)malloc(sizeof(str));
+    strcpy(newUser->name,str);
+    memset(str,'\0',50);
+
 
     strcpy(str,username);
     newUser->username = (char*)malloc(sizeof(str));
     strcpy(newUser->username,str);
-    memset(str,'\0',30);
+    memset(str,'\0',50);
 
     strcpy(str,password);
     newUser->password = (char*)malloc(sizeof(str));
     strcpy(newUser->password,str);
-    memset(str,'\0',30);
+    memset(str,'\0',50);
 
     newUser->borrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
     newUser->borrowBook->next = (BorrowBook*)malloc(sizeof(BorrowBook));
@@ -467,8 +478,13 @@ int storeUserInFile(){
     }
     User* userPtr = headPtrUser->next;
     char str[50];
+    memset(str,'\0',50);
     BorrowBook* borrowBookPtr;
     while(userPtr){
+        strcpy(str,userPtr->name);
+        fprintf(file,"%s\n",str);
+        memset(str,'\0',50);
+
         strcpy(str,userPtr->username);
         fprintf(file,"%s\n",str);
         memset(str,'\0',50);
@@ -525,6 +541,12 @@ int loadUser(){
         // newUser->borrowBook->next = (BorrowBook*)malloc(sizeof(BorrowBook));
 
         borrowBookPtr = newUser->borrowBook;
+
+        fscanf(file,"%[^\n]s",str);
+        newUser->name = (char*)malloc(sizeof(str));
+        strcpy(newUser->name,str);
+        memset(str,'\0',strlen(str));
+        fgetc(file);
 
         fscanf(file,"%[^\n]s",str);
         newUser->username = (char*)malloc(sizeof(str));
@@ -669,6 +691,8 @@ int main(void){
     char string[10] = "librarian";
     librarian->username = (char*)malloc(sizeof(string));
     librarian->password = (char*)malloc(sizeof(string));
+    librarian->name = (char*)malloc(sizeof(string));
+    librarian->name = string;
     librarian->username = string;
     librarian->password = string;
     librarian->borrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
@@ -683,13 +707,14 @@ int main(void){
 
     // declaration of users
     headPtrUser = (User*)malloc(sizeof(User));
+    headPtrUser->name = NULL;
     headPtrUser->username = NULL;
     headPtrUser->password = NULL;
     headPtrUser->borrowBook = NULL;
     headPtrUser->next = (User*)malloc(sizeof(User));
     headPtrUser->next = librarian;
 
-    storeUserInFile();
+    // storeUserInFile();
     load_books();
     loadUser();
 
@@ -705,17 +730,24 @@ int main(void){
             continue;
             // register an account
         }else if(*answer == '1'){
+            memset(answer,'\0',50);
+            printf("Please enter the name: ");
+            getchar();
+            scanf("%[^\n]s",answer);
+            memset(answer2,'\0',50);
             printf("Please enter a username: ");
-            scanf("%s",answer);
-            if(checkUsername(answer)){
+            getchar();
+            scanf("%[^\n]s",answer2);
+            if(checkUsername(answer2)){
                 printf("Sorry, registration unsuccessful, the username you entered already exists.\n");
                 printf("********************\n");
                 continue;
             }
             printf("Please enter a password: ");
-            memset(answer2,'\0',50);
-            scanf("%s",answer2);
-            storeUsername(answer, answer2);
+            getchar();
+            memset(answer3,'\0',50);
+            scanf("%s",answer3);
+            storeUsername(answer, answer2, answer3);
             storeUserInFile();
             memset(answer,'\0',50);
             memset(answer2,'\0',50);
@@ -866,7 +898,10 @@ int main(void){
                         User currentUser = *checkPassword(answer,answer2);
                         while(1){
                             memset(answer,'\0',50);
-                            printf("(logged in as: %s)\n",currentUser.username);
+                            char userName[50];
+                            memset(userName,'\0',50);
+                            strcpy(userName, currentUser.name);
+                            printf("(logged in as: %s)\n",userName);
                             printf("%s", userPrompt);
                             scanf("%s",answer);
                             // wrong option
@@ -881,9 +916,10 @@ int main(void){
                                 // the book can be borrowed the book exists in the library 
                                 // and not borrowed by the same user
                                 if(findBookByID(atoi(answer)) != NULL &&\
-                                findBookByID(atoi(answer))->copies >= 0 && !checkSameBorrowBook\
+                                findBookByID(atoi(answer))->copies > 0 && !checkSameBorrowBook\
                                 (atoi(answer),currentUser)){
                                     borrowBook(findBookByID(atoi(answer)),currentUser);
+                                    store_books();
                                     storeUserInFile();
                                     printf("You have successfully borrowed the book!\n");
                                     printf("********************\n");
@@ -914,6 +950,7 @@ int main(void){
                                         returnBook(checkReturnBook(atoi(answer),currentUser),\
                                         currentUser);
                                         findBookByID(atoi(answer))->copies++;
+                                        store_books();
                                         storeUserInFile();
                                         printf("Returned book successfully!.\n");
                                         printf("********************\n");
@@ -934,6 +971,9 @@ int main(void){
                             }
                         }
                     }
+                }else{
+                    printf("Incorrect password!\n");
+                    printf("********************\n");
                 }
             }else{
                 printf("Sorry, the username does not exist.\n");
