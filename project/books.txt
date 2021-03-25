@@ -1,0 +1,47 @@
+1
+Harry Potter and the Philosopher's Stone
+J.K. Rowling
+1997
+1
+
+2
+The Forgotten Room
+Karen White,Beatriz Williams,Lauren Willing
+2016
+0
+
+3
+Harry Potter and the Chamber of Secrets
+J.K. Rowling
+1998
+8
+
+4
+Holidays on Ice
+David Sedaris
+1997
+6
+
+5
+Java Programming
+asdf
+1990
+8
+
+6
+C Programming
+Herbert Schedlt
+1998
+2
+
+7
+Python
+abc
+1990
+2
+
+8
+Algorithms
+asdff
+1990
+2
