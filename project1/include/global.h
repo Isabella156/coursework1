@@ -7,6 +7,7 @@ typedef struct _Book {
     char *authors; //comma separated list of authors
     unsigned int year; // year of publication
     unsigned int copies; //number of copies the library has
+    unsigned int initialCopies;
     struct _Book *next;
 }Book;
 
@@ -25,6 +26,7 @@ typedef struct _BorrowBook{
 
 // declare a struct to store user
 typedef struct _User {
+    char *name;
     char *username;
     char *password;
     // books that the user borrow

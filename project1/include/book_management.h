@@ -7,11 +7,7 @@
 #include <stdlib.h>
 
 extern Book* headPtrBook;
-extern char searchMenu[];
 extern char answer[];
-extern char noSuchBook[];
-extern char invalidOption[];
-
 
 //saves the database of books in the specified file
 //returns 0 if books were stored correctly, or an error code otherwise
@@ -52,5 +48,9 @@ BorrowBook* checkReturnBook(unsigned int id, User user);
 // function to return the book
 void returnBook(BorrowBook* returnBook, User user);
 // function to search for a book
-void searchForBook();
+void searchForBook(char menu[]);
+// function to free book memory
+void freeBook();
+// function to free book array memory
+void freeBookArray(BookArray bookArray);
 #endif

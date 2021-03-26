@@ -1,8 +1,17 @@
 #include "../include/interface.h"
 
-
-
 int interface(){
+    // parameter passing to the searchForBook
+    char searchMenu[] = "Please choose an option:\n1) Find books by title\n2) Find books \
+by author\n3) Find books by year\n4) Return to previous menu\n Option:";
+    char firstPrompt[] = "Please choose an option:\n1) Register an account\n2) Login\n\
+3) Search for books\n4) Display all books\n5) Quit\n Option:";
+
+char librarianPrompt[] = "Please choose an option:\n1) Add a book\n2) Remove a book\n\
+3) Search for a book\n4) Display all books\n5)Log out\n Option:";
+
+char userPrompt[] = "Please enter an option:\n1) Borrow a book\n2) Return a book\n\
+3) Search for book\n4) Display all books\n5) Log out\n Option: ";
      // declaration of book
     headPtrBook = (Book*)malloc(sizeof(Book));
     headPtrBook->id = 0;
@@ -10,15 +19,16 @@ int interface(){
     headPtrBook->authors = NULL;
     headPtrBook->year = 0;
     headPtrBook->copies = 0;
+    headPtrBook->initialCopies = 0;
     headPtrBook->next = NULL;
-
-
 
     // declaration of library administrator (librarian)
     User* librarian = (User*)malloc(sizeof(User));
     char string[10] = "librarian";
     librarian->username = (char*)malloc(sizeof(string));
     librarian->password = (char*)malloc(sizeof(string));
+    librarian->name = (char*)malloc(sizeof(string));
+    librarian->name = string;
     librarian->username = string;
     librarian->password = string;
     librarian->borrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
@@ -32,6 +42,7 @@ int interface(){
 
     // declaration of users
     headPtrUser = (User*)malloc(sizeof(User));
+    headPtrUser->name = NULL;
     headPtrUser->username = NULL;
     headPtrUser->password = NULL;
     headPtrUser->borrowBook = NULL;
@@ -47,27 +58,35 @@ int interface(){
         scanf("%s",answer);
 
         // wrong option
-        if(*answer < '1' || *answer > '5'){
+        if(*answer < '1' || *answer > '5' || strlen(answer) > 1){
             memset(answer,'\0',50);
-            printf("%s",invalidOption);
+            printf("Invalid option!\n");
             
             continue;
             // register an account
         }else if(*answer == '1'){
+            memset(answer,'\0',50);
+            printf("Please enter the name: ");
+            getchar();
+            scanf("%[^\n]s",answer);
+            memset(answer2,'\0',50);
             printf("Please enter a username: ");
-            scanf("%s",answer);
+            getchar();
+            scanf("%[^\n]s",answer2);
             if(checkUsername(answer)){
                 printf("Sorry, registration unsuccessful, the username you entered already exists.\n");
                 printf("********************\n");
                 continue;
             }
             printf("Please enter a password: ");
-            memset(answer2,'\0',50);
-            scanf("%s",answer2);
-            storeUsername(answer, answer2);
+            getchar();
+            memset(answer3,'\0',50);
+            scanf("%s",answer3);
+            storeUsername(answer, answer2, answer3);
             storeUserInFile();
             memset(answer,'\0',50);
             memset(answer2,'\0',50);
+            memset(answer3,'\0',50);
             printf("Registered successfully!\n");
             printf("********************\n");
             // login
@@ -92,7 +111,7 @@ int interface(){
                             scanf("%s",answer);
                             // wrong option
                             if(*answer<'1' || *answer>'5'){
-                                printf("%s",invalidOption);
+                                printf("Invalid option!\n");
                                 printf("********************\n");
                                 memset(answer,'\0',50);
                                 continue;
@@ -201,7 +220,7 @@ int interface(){
                                 //search for a book
                             }else if(*answer == '3'){
                                 memset(answer,'\0',50);
-                                searchForBook();
+                                searchForBook(searchMenu);
                                 // display all books
                             }else if(*answer == '4'){
                                 displayBooks();
@@ -215,13 +234,17 @@ int interface(){
                         User currentUser = *checkPassword(answer,answer2);
                         while(1){
                             memset(answer,'\0',50);
-                            printf("(logged in as: %s)\n",currentUser.username);
+                            char userName[50];
+                            memset(userName,'\0',50);
+                            strcpy(userName, currentUser.name);
+                            printf("(logged in as: %s)\n",userName);
                             printf("%s", userPrompt);
                             scanf("%s",answer);
                             // wrong option
-                            if(*answer < '1' || *answer > '5'){
+                            if(*answer < '1' || *answer > '5' || strlen(answer) >1){
                                 memset(answer,'\0',50);
-                                printf("%s", invalidOption);
+                                printf("Invalid option!\n");
+                                printf("********************\n");
                                 // borrow a book
                             }else if(*answer == '1'){
                                 memset(answer,'\0',50);
@@ -230,9 +253,10 @@ int interface(){
                                 // the book can be borrowed the book exists in the library 
                                 // and not borrowed by the same user
                                 if(findBookByID(atoi(answer)) != NULL &&\
-                                findBookByID(atoi(answer))->copies >= 0 && !checkSameBorrowBook\
+                                findBookByID(atoi(answer))->copies > 0 && !checkSameBorrowBook\
                                 (atoi(answer),currentUser)){
                                     borrowBook(findBookByID(atoi(answer)),currentUser);
+                                    store_books();
                                     storeUserInFile();
                                     printf("You have successfully borrowed the book!\n");
                                     printf("********************\n");
@@ -263,6 +287,7 @@ int interface(){
                                         returnBook(checkReturnBook(atoi(answer),currentUser),\
                                         currentUser);
                                         findBookByID(atoi(answer))->copies++;
+                                        store_books();
                                         storeUserInFile();
                                         printf("Returned book successfully!.\n");
                                         printf("********************\n");
@@ -274,7 +299,7 @@ int interface(){
                                 // search for a book
                             }else if(*answer == '3'){
                                 memset(answer,'\0',50);
-                                searchForBook();
+                                searchForBook(searchMenu);
                             }else if(*answer == '4'){
                                 displayBooks();
                             }else if (*answer == '5'){
@@ -283,6 +308,9 @@ int interface(){
                             }
                         }
                     }
+                }else{
+                    printf("Incorrect password!\n");
+                    printf("********************\n");
                 }
             }else{
                 printf("Sorry, the username does not exist.\n");
@@ -291,13 +319,15 @@ int interface(){
             }
             // search for a book
         }else if(*answer == '3'){
-            searchForBook();
+            searchForBook(searchMenu);
         }else if(*answer == '4'){
             displayBooks();
         }else if(*answer == '5'){
+            freeBook();
+            freeUser();
             printf("Thank you for using the library!\n");
             printf("********************\n");
             return 0;
         }
     }
-    }
+}

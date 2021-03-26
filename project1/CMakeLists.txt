@@ -5,7 +5,7 @@ project(project1)
 include_directories(include)
 
 # change this to Release to activate optimization and compile without debug symbols
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
 # adds arbitrary flags to the complier.
 # this one is used to generate the files we give in input to

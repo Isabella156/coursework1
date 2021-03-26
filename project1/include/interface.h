@@ -8,12 +8,9 @@
 extern Book* headPtrBook;
 extern User* headPtrUser;
 
-extern char firstPrompt[];
-extern char librarianPrompt[];
-extern char invalidOption[];
-extern char userPrompt[];
 extern char answer[];
 extern char answer2[];
+extern char answer3[];
 
 // function to display the interface
 int interface();

@@ -67,6 +67,7 @@ int load_books(){
         fgetc(file);
 
         fscanf(file,"%u",&newBook->copies);
+        newBook->initialCopies = newBook->copies;
         fgetc(file);
         bookPtr->next = newBook;
         bookPtr = newBook;
@@ -87,6 +88,7 @@ int add_book(char bookTitle[], char bookAuthors[], unsigned int bookCopies, unsi
     newBook->authors = (char*)malloc(50);
     strcpy(newBook->authors, bookAuthors);
     newBook->copies = bookCopies;
+    newBook->initialCopies = bookCopies;
     newBook->year = bookYear;
     newBook->next = NULL;
 
@@ -112,7 +114,7 @@ int remove_book(char title[], char authors[], unsigned int year){
         bookPtr = bookPtr->next;
     }    
     // book can not be removed
-    if(bookPtr->next == NULL){
+    if(bookPtr->next == NULL || bookPtr->copies != bookPtr->initialCopies){
         return 0;
     // book can be removed
     }else{
@@ -127,6 +129,8 @@ int remove_book(char title[], char authors[], unsigned int year){
 }
 
 BookArray find_book_by_title (const char *title){
+    char str[50];
+    memset(str,'\0',50);
     // declare a BookArray
     BookArray titleArray;
     // initialize the book array
@@ -140,8 +144,17 @@ BookArray find_book_by_title (const char *title){
         if(strstr(bookPtr->title,title)){
             Book* newArray = (Book*)malloc(sizeof(Book));
             newArray->id = bookPtr->id;
-            newArray->title = bookPtr->title;
-            newArray->authors = bookPtr->authors;
+
+            strcpy(str,bookPtr->title);
+            newArray->title = (char*)malloc(sizeof(str));
+            strcpy(newArray->title,str);
+            memset(str,'\0',50);
+
+            strcpy(str,bookPtr->authors);
+            newArray->authors = (char*)malloc(sizeof(str));
+            strcpy(newArray->authors,str);
+            memset(str,'\0',50);
+
             newArray->year = bookPtr->year;
             newArray->copies = bookPtr->copies;
             newArray->next = NULL;
@@ -162,6 +175,8 @@ BookArray find_book_by_author (const char *author){
     // declare a BookArray
     BookArray authorArray;
     // initialize the book array
+    char str[50];
+    memset(str,'\0',50);
     authorArray.array = (Book*)malloc(sizeof(Book));
     authorArray.length = 0;
 
@@ -172,8 +187,17 @@ BookArray find_book_by_author (const char *author){
         if(strstr(bookPtr->authors,author)){
             Book* newArray = (Book*)malloc(sizeof(Book));
             newArray->id = bookPtr->id;
-            newArray->title = bookPtr->title;
-            newArray->authors = bookPtr->authors;
+
+            strcpy(str,bookPtr->title);
+            newArray->title = (char*)malloc(sizeof(str));
+            strcpy(newArray->title,str);
+            memset(str,'\0',50);
+
+            strcpy(str,bookPtr->authors);
+            newArray->authors = (char*)malloc(sizeof(str));
+            strcpy(newArray->authors,str);
+            memset(str,'\0',50);
+
             newArray->year = bookPtr->year;
             newArray->copies = bookPtr->copies;
             newArray->next = NULL;
@@ -191,6 +215,8 @@ BookArray find_book_by_author (const char *author){
 }
 
 BookArray find_book_by_year (unsigned int year){
+    char str[50];
+    memset(str,'\0',50);
         // declare a BookArray
     BookArray yearArray;
     // initialize the book array
@@ -204,8 +230,16 @@ BookArray find_book_by_year (unsigned int year){
         if(bookPtr->year == year){
             Book* newArray = (Book*)malloc(sizeof(Book));
             newArray->id = bookPtr->id;
-            newArray->title = bookPtr->title;
-            newArray->authors = bookPtr->authors;
+
+            strcpy(str,bookPtr->title);
+            newArray->title = (char*)malloc(sizeof(str));
+            strcpy(newArray->title,str);
+            memset(str,'\0',50);
+
+            strcpy(str,bookPtr->authors);
+            newArray->authors = (char*)malloc(sizeof(str));
+            strcpy(newArray->authors,str);
+            memset(str,'\0',50);
             newArray->year = bookPtr->year;
             newArray->copies = bookPtr->copies;
             newArray->next = NULL;
@@ -244,8 +278,20 @@ void borrowBook(Book* book, User user){
     // new borrowBook
     BorrowBook* newBorrowBook = (BorrowBook*)malloc(sizeof(BorrowBook));
     newBorrowBook->id = book->id;
-    newBorrowBook->authors = book->authors;
-    newBorrowBook->title = book->title;
+
+    char str[50];
+    memset(str,'\0',50);
+
+    strcpy(str,book->authors);
+    newBorrowBook->authors = (char*)malloc(sizeof(str));
+    strcpy(newBorrowBook->authors,str);
+    memset(str,'\0',50);
+
+    strcpy(str,book->title);
+    newBorrowBook->title = (char*)malloc(sizeof(str));
+    strcpy(newBorrowBook->title,str);
+    memset(str,'\0',50);
+
     newBorrowBook->year = book->year;
     newBorrowBook->next = NULL;
 
@@ -286,26 +332,29 @@ void returnBook(BorrowBook* returnBook, User user){
     returnBook->next = NULL;
 }
 
-void searchForBook(){
+void searchForBook(char Menu[]){
     while (1){
         printf("Loading search menu...\n\n");
-        printf("%s",searchMenu);
+        printf("%s",Menu);
         scanf("%s",answer);
         // wrong option
         if(*answer <'1' || *answer > '4' || strlen(answer) >1){
-            printf("%s", invalidOption);
+            printf("Invalid option!\n");
             // find books by title
         }else if(*answer == '1'){
             memset(answer,'\0',50);
             getchar();
             printf("Please enter the title: ");
             scanf("%[^\n]s",answer);
+             BookArray array;
+            array = find_book_by_title(answer);
             // find the book
-            if(find_book_by_title(answer).array->next != NULL){
-                displayBookArray(find_book_by_title(answer));
+            if(array.array->next != NULL){
+                displayBookArray(array);
+                freeBookArray(array);
                 // can not find the book
             }else{
-                printf("%s", noSuchBook);
+                printf("No such book!\n");
                 printf("********************\n");
             }
             // find books by author
@@ -314,22 +363,35 @@ void searchForBook(){
             memset(answer,'\0',50);
             printf("Please enter the author: ");
             scanf("%[^\n]s",answer);
-            // find the book
-            if(find_book_by_author(answer).array->next != NULL){
-                displayBookArray(find_book_by_author(answer));
+            BookArray array;
+            array = find_book_by_author(answer);
+            if(*answer >'0' && *answer <'9'){
+                printf("Invalid author!\n");
+                printf("********************\n");
+            }// find the book
+            else if(array.array->next != NULL){
+                displayBookArray(array);
+                freeBookArray(array);
                 // can not find the book
             }else{
-                printf("%s", noSuchBook);
+                printf("No such book!\n");
                 printf("********************\n");
             }
             // find books by year
         }else if(*answer == '3'){
             printf("Please enter the year: ");
             scanf("%s",answer);
-            if(find_book_by_year(atoi(answer)).array->next != NULL){
-                displayBookArray(find_book_by_year(atoi(answer)));
+            BookArray array;
+            array = find_book_by_year(atoi(answer));
+            if(*answer <= '0' || *answer >'9'){
+                printf("Invalid year!\n");
+                printf("********************\n");
+            }
+            if(array.array->next != NULL){
+                displayBookArray(array);
+                freeBookArray(array);
             }else{
-                printf("%s", noSuchBook);
+                printf("No such book!\n");
                 printf("********************\n");
             }
             // return to previous menu
@@ -337,4 +399,28 @@ void searchForBook(){
             break;
         }
     }
+}
+
+void freeBook(){
+    Book* bookPtr;
+    while(headPtrBook->next){
+        bookPtr = headPtrBook->next;
+        headPtrBook->next = bookPtr->next;
+        free(bookPtr->title);
+        free(bookPtr->authors);
+        free(bookPtr);
+    }
+    free(headPtrBook);
+}
+
+void freeBookArray(BookArray bookArray){
+    Book* bookPtr;
+    while(bookArray.array->next){
+        bookPtr = bookArray.array->next;
+        bookArray.array->next = bookPtr->next;
+        free(bookPtr->title);
+        free(bookPtr->authors);
+        free(bookPtr);
+    }
+    free(bookArray.array);
 }
